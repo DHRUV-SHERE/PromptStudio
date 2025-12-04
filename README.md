@@ -38,7 +38,7 @@
 
    <h2>🔧 Getting Started</h2>
    <h3>Cloning the Repository</h3>
-   git clone https://github.com/DHRUV-SHERE/PromptStudio.git </br>
+   git clone https://github.com/DHRUV-SHERE/PromptStudio </br>
    cd PromptStudio </br>
 
    <h3>Setup Instructions</h3> 
