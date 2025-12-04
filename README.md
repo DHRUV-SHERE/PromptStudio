@@ -76,7 +76,7 @@
 
    <p>
       <h3>Created with ⚡ by Dhruv | 
-      <a href="https://github.com/DHRUV_SHERE/PromptStudio">GitHub Repo</a></h3>
+          <h3><a href="https://github.com/DHRUV-SHERE/PromptStudio">GitHub Repo</a></h3>
    </p>
 
 </body>
