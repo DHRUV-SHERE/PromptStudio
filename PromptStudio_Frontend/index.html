@@ -1,13 +1,149 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>index</title>
+    
+    <!-- Viewport for responsive design -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    
+    <!-- Primary Meta Tags -->
+    <title>PromptStudio | AI Prompt Generator & Optimizer</title>
+    <meta name="description" content="Generate, optimize, and enhance AI prompts for ChatGPT, Midjourney, DALL-E, and other AI tools. Create perfect prompts for marketing, coding, storytelling, and creative projects.">
+    <meta name="keywords" content="AI prompt generator, ChatGPT prompts, Midjourney prompts, AI tools, prompt engineering, marketing prompts, coding prompts, storytelling prompts">
+    <meta name="author" content="PromptStudio">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    
+    <!-- Canonical URL - Updated with your new domain -->
+    <link rel="canonical" href="https://thepromptstudio.vercel.app">
+    
+    <!-- Favicon & Icons - Fixed Logo Path -->
+    <!-- For Vite, assets in src folder need to be imported in JS, use public folder instead -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg">
+    <!-- If you want to use your logo as favicon, move it to public folder -->
+    <!-- Option 1: Use logo from public folder (Recommended) -->
+    <link rel="icon" type="image/png" href="/logo.png">
+    
+    <!-- Standard favicon sizes -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- Open Graph / Facebook - Updated URLs -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://thepromptstudio.vercel.app">
+    <meta property="og:title" content="PromptStudio | AI Prompt Generator & Optimizer">
+    <meta property="og:description" content="Generate, optimize, and enhance AI prompts for ChatGPT, Midjourney, DALL-E, and other AI tools.">
+    <meta property="og:image" content="https://thepromptstudio.vercel.app/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="PromptStudio AI Prompt Generator">
+    <meta property="og:site_name" content="PromptStudio">
+    
+    <!-- Twitter - Updated URLs -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://thepromptstudio.vercel.app">
+    <meta name="twitter:title" content="PromptStudio | AI Prompt Generator & Optimizer">
+    <meta name="twitter:description" content="Generate, optimize, and enhance AI prompts for ChatGPT, Midjourney, DALL-E, and other AI tools.">
+    <meta name="twitter:image" content="https://thepromptstudio.vercel.app/twitter-image.jpg">
+    <meta name="twitter:creator" content="@promptstudio">
+    
+    <!-- Additional SEO Tags -->
+    <meta name="theme-color" content="#7C3AED">
+    <meta name="color-scheme" content="light dark">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/main.jsx" as="script">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Schema.org Structured Data - Updated URL -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "PromptStudio",
+      "description": "AI Prompt Generator & Optimizer for ChatGPT, Midjourney, DALL-E",
+      "url": "https://thepromptstudio.vercel.app",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "PromptStudio"
+      },
+      "softwareVersion": "1.0.0"
+    }
+    </script>
+    
+    <!-- Performance & Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- Fonts (Optional) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-to-content" style="position: absolute; top: -40px; left: 0; background: #7C3AED; color: white; padding: 8px; z-index: 1000; text-decoration: none;">Skip to main content</a>
+    
+    <!-- Root element for React -->
+    <div id="root" role="main" aria-label="Main application content"></div>
+    
+    <!-- Fallback content for users without JavaScript -->
+    <noscript>
+      <div class="noscript-message" style="padding: 2rem; text-align: center; font-family: 'Inter', sans-serif;">
+        <h1 style="color: #7C3AED; font-size: 2.5rem; margin-bottom: 1rem;">PromptStudio - AI Prompt Generator</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 1.5rem;">This application requires JavaScript to function properly. Please enable JavaScript in your browser settings.</p>
+        <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">In the meantime, you can:</p>
+        <ul style="list-style: none; padding: 0; max-width: 500px; margin: 0 auto;">
+          <li style="padding: 8px 0; font-size: 1.1rem;">✓ Generate prompts for AI tools like ChatGPT and Midjourney</li>
+          <li style="padding: 8px 0; font-size: 1.1rem;">✓ Optimize existing prompts for better results</li>
+          <li style="padding: 8px 0; font-size: 1.1rem;">✓ Create marketing, coding, and storytelling prompts</li>
+          <li style="padding: 8px 0; font-size: 1.1rem;">✓ Save and manage your prompt library</li>
+        </ul>
+        <div style="margin-top: 2rem; padding: 1rem; background: #f3f4f6; border-radius: 8px;">
+          <p>Visit us at: <strong>https://thepromptstudio.vercel.app</strong></p>
+        </div>
+      </div>
+    </noscript>
+    
+    <!-- Main application script -->
     <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Performance monitoring -->
+    <script>
+      window.addEventListener('load', function() {
+        if ('performance' in window) {
+          const perfData = window.performance.timing;
+          const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+          console.log('Page load time:', pageLoadTime + 'ms');
+          
+          // Send to analytics if you have them
+          if (window.gtag) {
+            window.gtag('event', 'timing_complete', {
+              'name': 'page_load',
+              'value': pageLoadTime,
+              'event_category': 'Performance'
+            });
+          }
+        }
+        
+        // Check if logo loaded properly
+        const logo = new Image();
+        logo.src = '/logo.png';
+        logo.onload = function() {
+          console.log('Logo loaded successfully');
+        };
+        logo.onerror = function() {
+          console.warn('Logo not found at /logo.png. Please place your logo in the public folder.');
+        };
+      });
+    </script>
   </body>
 </html>

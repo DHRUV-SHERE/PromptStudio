@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://your-domain.vercel.app/sitemap.xml
+
+# Crawl-delay for free tier hosting
+Crawl-delay: 2

@@ -17,7 +17,7 @@ const app = express();
 
 // Production CORS Configuration
 const allowedOrigins = [
-    'https://your-vercel-frontend.vercel.app', // REPLACE with your actual Vercel frontend URL
+    'https://thepromptstudio.vercel.app', // REPLACE with your actual Vercel frontend URL
     'http://localhost:5173', // Local development
     'https://promptstudio-av40.onrender.com', // Your backend (for self-requests if needed)
     'https://promptstudio-av40.onrender.com' // Alternate (keep both for safety)
