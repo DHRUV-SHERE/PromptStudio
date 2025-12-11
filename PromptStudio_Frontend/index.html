@@ -13,23 +13,29 @@
     <meta name="author" content="PromptStudio">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     
-    <!-- Canonical URL - Updated with your new domain -->
+    <!-- Canonical URL -->
     <link rel="canonical" href="https://thepromptstudio.vercel.app">
     
-    <!-- Favicon & Icons - Fixed Logo Path -->
-    <!-- For Vite, assets in src folder need to be imported in JS, use public folder instead -->
-    <link rel="icon" type="image/svg+xml" href="/vite.svg">
-    <!-- If you want to use your logo as favicon, move it to public folder -->
-    <!-- Option 1: Use logo from public folder (Recommended) -->
+    <!-- Favicon & Icons - SIMPLIFIED & WORKING VERSION -->
+    <!-- Use only what you actually have in /public folder -->
+    
+    <!-- Option A: Use your Logo.png as favicon (if it's in public folder) -->
     <link rel="icon" type="image/png" href="/logo.png">
     
-    <!-- Standard favicon sizes -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <!-- Option B: Use Vite's default favicon (always exists) -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg">
     
-    <!-- Open Graph / Facebook - Updated URLs -->
+    <!-- Option C: Create basic favicon.ico (compatible with all browsers) -->
+    <!-- Place a 32x32 or 16x16 PNG in /public and rename to favicon.ico -->
+    <!-- <link rel="icon" href="/favicon.ico" sizes="any"> -->
+    
+    <!-- Apple Touch Icon (Optional - if you have the file) -->
+    <!-- <link rel="apple-touch-icon" href="/apple-touch-icon.png"> -->
+    
+    <!-- Web App Manifest (PWA) - Update if you have it -->
+    <!-- <link rel="manifest" href="/site.webmanifest"> -->
+    
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://thepromptstudio.vercel.app">
     <meta property="og:title" content="PromptStudio | AI Prompt Generator & Optimizer">
@@ -40,7 +46,7 @@
     <meta property="og:image:alt" content="PromptStudio AI Prompt Generator">
     <meta property="og:site_name" content="PromptStudio">
     
-    <!-- Twitter - Updated URLs -->
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://thepromptstudio.vercel.app">
     <meta name="twitter:title" content="PromptStudio | AI Prompt Generator & Optimizer">
@@ -58,7 +64,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Schema.org Structured Data - Updated URL -->
+    <!-- Schema.org Structured Data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -80,10 +86,6 @@
       "softwareVersion": "1.0.0"
     }
     </script>
-    
-    <!-- Performance & Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
     
     <!-- Fonts (Optional) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -116,33 +118,28 @@
     <!-- Main application script -->
     <script type="module" src="/src/main.jsx"></script>
     
-    <!-- Performance monitoring -->
+    <!-- Favicon checker - helps debug missing files -->
     <script>
       window.addEventListener('load', function() {
+        console.log('Checking favicons...');
+        
+        // Check which favicon loaded
+        const favicon = new Image();
+        favicon.onload = function() {
+          console.log('✅ Favicon loaded: /logo.png');
+        };
+        favicon.onerror = function() {
+          console.log('⚠️ /logo.png not found, trying /vite.svg');
+          // Vite's default favicon always exists
+        };
+        favicon.src = '/logo.png';
+        
+        // Performance check
         if ('performance' in window) {
           const perfData = window.performance.timing;
           const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
           console.log('Page load time:', pageLoadTime + 'ms');
-          
-          // Send to analytics if you have them
-          if (window.gtag) {
-            window.gtag('event', 'timing_complete', {
-              'name': 'page_load',
-              'value': pageLoadTime,
-              'event_category': 'Performance'
-            });
-          }
         }
-        
-        // Check if logo loaded properly
-        const logo = new Image();
-        logo.src = '/logo.png';
-        logo.onload = function() {
-          console.log('Logo loaded successfully');
-        };
-        logo.onerror = function() {
-          console.warn('Logo not found at /logo.png. Please place your logo in the public folder.');
-        };
       });
     </script>
   </body>

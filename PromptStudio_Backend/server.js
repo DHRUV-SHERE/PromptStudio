@@ -3,7 +3,7 @@ dotenv.config();
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const path = require('path'); // Add this for static file serving
+const path = require('path');
 const connectDB = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
@@ -22,10 +22,10 @@ const allowedOrigins = [
     'https://promptstudio-av40.onrender.com' // Your backend
 ];
 
-// CORS configuration
+// CORS configuration - FIXED
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin
+        // Allow requests with no origin (like mobile apps, curl, Postman)
         if (!origin) return callback(null, true);
         
         if (allowedOrigins.includes(origin)) {
@@ -40,7 +40,9 @@ const corsOptions = {
 };
 
 // Apply CORS middleware
-app.use(cors(corsOptions));// Middleware
+app.use(cors(corsOptions));
+
+// Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
@@ -111,8 +113,8 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
-// 404 handler for API routes
-app.use('/api/*', (req, res) => {
+// ✅ FIXED: 404 handler for unmatched API routes
+app.all('/api/*', (req, res) => {
     res.status(404).json({
         success: false,
         message: `API endpoint ${req.method} ${req.originalUrl} not found`,
@@ -120,7 +122,22 @@ app.use('/api/*', (req, res) => {
             auth: '/api/auth/*',
             prompts: '/api/prompts/*',
             contact: '/api/contact/*'
-        }
+        },
+        suggestion: 'Visit /api for available endpoints'
+    });
+});
+
+// ✅ FIXED: Global 404 handler for all other routes
+app.all('*', (req, res) => {
+    // Skip if it's an API route (already handled above)
+    if (req.path.startsWith('/api')) {
+        return;
+    }
+    
+    res.status(404).json({
+        success: false,
+        message: `Route ${req.method} ${req.originalUrl} not found`,
+        suggestion: 'Visit /api for available endpoints'
     });
 });
 
@@ -140,7 +157,8 @@ app.use((err, req, res, next) => {
         return res.status(403).json({
             success: false,
             message: 'CORS Error: Request origin not allowed',
-            allowedOrigins: allowedOrigins
+            allowedOrigins: allowedOrigins,
+            yourOrigin: req.headers.origin || 'Not provided'
         });
     }
     
@@ -148,7 +166,7 @@ app.use((err, req, res, next) => {
         success: false, 
         message: 'Internal server error',
         error: process.env.NODE_ENV === 'development' ? err.message : undefined,
-        requestId: req.id || Date.now().toString(36)
+        requestId: Date.now().toString(36)
     });
 });
 
@@ -167,6 +185,7 @@ const server = app.listen(PORT, HOST, () => {
     ✅ Health Check: http://localhost:${PORT}/health
     📚 API Docs: http://localhost:${PORT}/api
     🗄️  Database: ${process.env.MONGODB_URI ? 'Connected' : 'Not configured'}
+    🌐 Allowed Origins: ${allowedOrigins.join(', ')}
     
     Press Ctrl+C to stop the server
     `);
