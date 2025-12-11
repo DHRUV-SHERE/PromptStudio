@@ -1,0 +1,23 @@
+# Ignore node modules
+node_modules/
+# Ignore environment variables
+.env
+# Ignore logs
+logs/
+*.log
+pids/
+*.pid
+# Ignore build files
+build/
+dist/
+# Ignore OS files
+.DS_Store
+Thumbs.db
+# Ignore IDE files
+.vscode/
+.idea/
+# Ignore coverage reports
+coverage/
+# Ignore temporary files
+tmp/
+*.tmp
