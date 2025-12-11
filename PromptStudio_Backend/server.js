@@ -17,51 +17,30 @@ const app = express();
 
 // Production CORS Configuration
 const allowedOrigins = [
-    'https://thepromptstudio.vercel.app', // REPLACE with your actual Vercel frontend URL
+    'https://thepromptstudio.vercel.app', // Your Vercel frontend
     'http://localhost:5173', // Local development
-    'https://promptstudio-av40.onrender.com', // Your backend (for self-requests if needed)
-    'https://promptstudio-av40.onrender.com' // Alternate (keep both for safety)
+    'https://promptstudio-av40.onrender.com' // Your backend
 ];
 
-// Dynamic CORS configuration
+// CORS configuration
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, curl, Postman)
+        // Allow requests with no origin
         if (!origin) return callback(null, true);
         
-        // Check if origin is in allowed list
         if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            // Log unauthorized origin attempts
-            console.warn(`Blocked by CORS: ${origin}`);
-            callback(new Error(`Not allowed by CORS. Allowed origins: ${allowedOrigins.join(', ')}`));
+            console.log(`CORS blocked: ${origin} | Allowed: ${allowedOrigins.join(', ')}`);
+            callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    exposedHeaders: ['Content-Length', 'Authorization'],
-    maxAge: 86400 // 24 hours
+    optionsSuccessStatus: 200
 };
 
 // Apply CORS middleware
-app.use(cors(corsOptions));
-
-// Handle preflight requests
-app.options('*', cors(corsOptions));
-
-// Additional CORS headers for specific cases
-app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-    }
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
-});
-
-// Middleware
+app.use(cors(corsOptions));// Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
