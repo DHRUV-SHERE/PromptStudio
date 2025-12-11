@@ -6,24 +6,24 @@ const {
 } = require('../utils/tokenUtils');
 const crypto = require('crypto');
 
-// Helper to set cookies
+// ✅ CORRECT: Both cookies should have root path
 const setTokensCookies = (res, accessToken, refreshToken, maxAge) => {
-    // Set access token in cookie (HTTP-only)
+    // Set access token in cookie
     res.cookie('access_token', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax', // Changed from 'strict' to 'lax'
         maxAge: 15 * 60 * 1000, // 15 minutes
-        path: '/'
+        path: '/'  // ✅ Root path
     });
     
-    // Set refresh token in cookie (HTTP-only)
+    // Set refresh token in cookie
     res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax', // Changed from 'strict' to 'lax'
         maxAge: maxAge,
-        path: '/api/auth/refresh'
+        path: '/'  // ✅ Root path (was /api/auth/refresh)
     });
 };
 

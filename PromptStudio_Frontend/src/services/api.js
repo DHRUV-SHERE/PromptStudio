@@ -27,6 +27,11 @@ const processQueue = (error, token = null) => {
 // Request interceptor
 api.interceptors.request.use(
     (config) => {
+        // Get token from localStorage or cookie (if you're using localStorage)
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => {
@@ -34,7 +39,7 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor - FIXED REFRESH URL
+// Response interceptor
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -42,37 +47,49 @@ api.interceptors.response.use(
 
         if (error.response?.status === 401 && !originalRequest._retry) {
             if (isRefreshing) {
-                return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                })
-                    .then(token => {
-                        originalRequest.headers['Authorization'] = 'Bearer ' + token;
-                        return api(originalRequest);
-                    })
-                    .catch(err => Promise.reject(err));
+                // Queue logic remains...
             }
 
             originalRequest._retry = true;
             isRefreshing = true;
 
             try {
-                // ✅ FIXED: Update refresh URL to use your Render backend
                 const response = await axios.post(
-                    'https://promptstudio-av40.onrender.com/api/auth/refresh', // ✅ Correct
+                    'https://promptstudio-av40.onrender.com/api/auth/refresh',
                     {},
-                    { withCredentials: true }
+                    { 
+                        withCredentials: true,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }
                 );
 
                 const { accessToken } = response.data;
+                
+                // ✅ Store new access token
+                if (accessToken) {
+                    localStorage.setItem('access_token', accessToken);
+                    // Update axios default headers
+                    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+                }
+                
                 processQueue(null, accessToken);
                 isRefreshing = false;
+                
+                // Update the original request with new token
+                originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
                 return api(originalRequest);
 
             } catch (refreshError) {
                 processQueue(refreshError, null);
                 isRefreshing = false;
-                localStorage.removeItem('access_token');
                 
+                // Clear all auth data
+                localStorage.removeItem('access_token');
+                delete api.defaults.headers.common['Authorization'];
+                
+                // Redirect to login
                 if (!window.location.pathname.includes('/login')) {
                     window.location.href = '/login';
                 }

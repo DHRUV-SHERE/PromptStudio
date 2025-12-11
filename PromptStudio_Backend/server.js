@@ -15,11 +15,12 @@ connectDB();
 // Initialize Express
 const app = express();
 
-// CORS Configuration
 const corsOptions = {
     origin: ['https://thepromptstudio.vercel.app', 'http://localhost:5173'],
     credentials: true,
-    optionsSuccessStatus: 200
+    optionsSuccessStatus: 200,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Authorization']  // Expose Authorization header
 };
 
 app.use(cors(corsOptions));
