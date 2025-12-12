@@ -9,11 +9,11 @@ const crypto = require('crypto');
 // authController.js - FIXED setTokensCookies function
 const setTokensCookies = (req, res, accessToken, refreshToken, maxAge) => {
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     // Get the request origin to determine domain
     const requestOrigin = req.headers.origin || '';
     let domain = undefined;
-    
+
     if (isProduction) {
         // For cross-domain, we need specific domain, not .render.com
         // Check if request is from vercel.app
@@ -43,7 +43,7 @@ const setTokensCookies = (req, res, accessToken, refreshToken, maxAge) => {
         path: '/',
         domain: domain
     });
-    
+
     // Set refresh token cookie
     res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
@@ -272,7 +272,7 @@ const refreshToken = async (req, res) => {
         });
 
         // Set new cookies
-    setTokensCookies(req, res, newAccessToken, newRefreshTokenData.token, 7 * 24 * 60 * 60 * 1000);
+        setTokensCookies(req, res, newAccessToken, newRefreshTokenData.token, 7 * 24 * 60 * 60 * 1000);
 
         res.status(200).json({
             success: true,
@@ -289,19 +289,38 @@ const refreshToken = async (req, res) => {
         });
     }
 };
-
 // @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Private
 const logoutUser = async (req, res) => {
     try {
-        const refreshToken = req.cookies.refresh_token;
+        const isProduction = process.env.NODE_ENV === 'production';
+        const requestOrigin = req.headers.origin || '';
+        let domain = undefined;
 
-        // Clear cookies
-        res.clearCookie('access_token');
-        res.clearCookie('refresh_token');
+        if (isProduction && requestOrigin.includes('thepromptstudio.vercel.app')) {
+            domain = 'promptstudio-vqbn.onrender.com';
+        }
+
+        // Clear cookies WITH SAME OPTIONS as when set
+        res.clearCookie('access_token', {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            path: '/',
+            domain: domain
+        });
+
+        res.clearCookie('refresh_token', {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            path: '/',
+            domain: domain
+        });
 
         // If refresh token exists, remove it from database
+        const refreshToken = req.cookies.refresh_token;
         if (refreshToken) {
             const hashedToken = crypto
                 .createHash('sha256')
@@ -316,6 +335,9 @@ const logoutUser = async (req, res) => {
                 await user.removeRefreshToken(hashedToken);
             }
         }
+
+        // In logoutUser:
+        clearTokensCookies(req, res);
 
         res.status(200).json({
             success: true,
@@ -336,6 +358,14 @@ const logoutUser = async (req, res) => {
 // @access  Private
 const logoutAllDevices = async (req, res) => {
     try {
+        const isProduction = process.env.NODE_ENV === 'production';
+        const requestOrigin = req.headers.origin || '';
+        let domain = undefined;
+
+        if (isProduction && requestOrigin.includes('thepromptstudio.vercel.app')) {
+            domain = 'promptstudio-vqbn.onrender.com';
+        }
+
         const user = await User.findById(req.userId);
 
         if (user) {
@@ -344,10 +374,25 @@ const logoutAllDevices = async (req, res) => {
             await user.save();
         }
 
-        // Clear cookies
-        res.clearCookie('access_token');
-        res.clearCookie('refresh_token');
+        // Clear cookies WITH SAME OPTIONS
+        res.clearCookie('access_token', {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            path: '/',
+            domain: domain
+        });
 
+        res.clearCookie('refresh_token', {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            path: '/',
+            domain: domain
+        });
+
+        // In logoutAllDevices:
+        clearTokensCookies(req, res);
         res.status(200).json({
             success: true,
             message: 'Logged out from all devices successfully'
@@ -397,4 +442,31 @@ module.exports = {
     logoutUser,
     logoutAllDevices,
     getCurrentUser
+};
+
+// Helper function to clear cookies with proper options
+const clearTokensCookies = (req, res) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const requestOrigin = req.headers.origin || '';
+    let domain = undefined;
+
+    if (isProduction && requestOrigin.includes('thepromptstudio.vercel.app')) {
+        domain = 'promptstudio-vqbn.onrender.com';
+    }
+
+    res.clearCookie('access_token', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/',
+        domain: domain
+    });
+
+    res.clearCookie('refresh_token', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/',
+        domain: domain
+    });
 };

@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
-// authMiddleware.js - protect function
-const protect = (req, res, next) => {
+// In authMiddleware.js - Add token validation
+const protect = async (req, res, next) => {
     let token;
 
     // 1. Check Authorization header
@@ -22,10 +22,23 @@ const protect = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Check if this token has been blacklisted (optional enhancement)
+        // You could store invalidated tokens in Redis or database
+        
         req.userId = decoded.id;
         next();
     } catch (error) {
         console.error('Token verification error:', error);
+        
+        // If token is expired, be more specific
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({
+                success: false,
+                message: 'Token expired, please login again'
+            });
+        }
+        
         return res.status(401).json({
             success: false,
             message: 'Not authorized, invalid token'

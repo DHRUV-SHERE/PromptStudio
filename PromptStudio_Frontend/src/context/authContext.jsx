@@ -97,29 +97,43 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
-        try {
-            await authAPI.logout();
-        } catch (error) {
-            console.error('Logout API error:', error);
-        } finally {
-            // Always clear
-            localStorage.removeItem('access_token');
-            clearTokenRefreshTimer();
-            setUser(null);
+    try {
+        await authAPI.logout();
+    } catch (error) {
+        console.error('Logout API error:', error);
+    } finally {
+        // Clear ALL local storage items related to auth
+        localStorage.removeItem('access_token');
+        sessionStorage.clear(); // Clear session storage too
+        
+        // Clear any indexedDB or cache if used
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => caches.delete(name));
+            });
         }
-    };
+        
+        clearTokenRefreshTimer();
+        setUser(null);
+        
+        // Force reload to clear any React state
+        window.location.href = '/login';
+    }
+};
 
-    const logoutAll = async () => {
-        try {
-            await authAPI.logoutAll();
-        } catch (error) {
-            console.error('Logout all error:', error);
-        } finally {
-            localStorage.removeItem('access_token');
-            clearTokenRefreshTimer();
-            setUser(null);
-        }
-    };
+const logoutAll = async () => {
+    try {
+        await authAPI.logoutAll();
+    } catch (error) {
+        console.error('Logout all error:', error);
+    } finally {
+        localStorage.removeItem('access_token');
+        sessionStorage.clear();
+        clearTokenRefreshTimer();
+        setUser(null);
+        window.location.href = '/login';
+    }
+};
 
     const value = {
         user,
