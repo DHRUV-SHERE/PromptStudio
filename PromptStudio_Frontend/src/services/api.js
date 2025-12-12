@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance - FIXED URL
 const api = axios.create({
-    baseURL: 'https://promptstudio-av40.onrender.com/api', // ✅ ADDED /api
+    baseURL: 'https://promptstudio-vqbn.onrender.com/api', // ✅ ADDED /api
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
