@@ -1,29 +1,26 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-// Generate Access Token (short-lived)
+// tokenUtils.js
 const generateAccessToken = (userId) => {
     return jwt.sign(
         { id: userId },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRE }
+        { expiresIn: process.env.JWT_ACCESS_EXPIRE || '15m' } // ✅ Use env var
     );
 };
 
-// Generate Refresh Token (long-lived)
 const generateRefreshToken = () => {
-    // Generate random token
     const refreshToken = crypto.randomBytes(40).toString('hex');
-    
-    // Hash it for storage
     const hashedToken = crypto
         .createHash('sha256')
         .update(refreshToken)
         .digest('hex');
     
-    // Calculate expiration date
+    // Use environment variable
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + parseInt(process.env.JWT_COOKIE_EXPIRE));
+    expiresAt.setDate(expiresAt.getDate() + 
+        parseInt(process.env.JWT_REFRESH_EXPIRE_DAYS || '7')); // ✅ Use env var
     
     return {
         token: refreshToken,

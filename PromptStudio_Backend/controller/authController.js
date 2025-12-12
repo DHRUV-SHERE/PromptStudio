@@ -1,32 +1,35 @@
 const User = require('../models/UserModel');
-const { 
-    generateAccessToken, 
+const {
+    generateAccessToken,
     generateRefreshToken,
-    verifyAccessToken 
+    verifyAccessToken
 } = require('../utils/tokenUtils');
 const crypto = require('crypto');
 
-// ✅ CORRECT: Both cookies should have root path
+// authController.js - Update setTokensCookies function
 const setTokensCookies = (res, accessToken, refreshToken, maxAge) => {
-    // Set access token in cookie
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // Set access token cookie
     res.cookie('access_token', accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax', // Changed from 'strict' to 'lax'
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax', // ✅ Use 'none' for cross-domain
         maxAge: 15 * 60 * 1000, // 15 minutes
-        path: '/'  // ✅ Root path
+        path: '/',
+        domain: isProduction ? '.render.com' : undefined // ✅ Add domain for production
     });
-    
-    // Set refresh token in cookie
+
+    // Set refresh token cookie
     res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax', // Changed from 'strict' to 'lax'
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax', // ✅ Use 'none' for cross-domain
         maxAge: maxAge,
-        path: '/'  // ✅ Root path (was /api/auth/refresh)
+        path: '/',
+        domain: isProduction ? '.render.com' : undefined // ✅ Add domain for production
     });
 };
-
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -61,7 +64,7 @@ const registerUser = async (req, res) => {
         // Generate tokens
         const accessToken = generateAccessToken(user._id);
         const refreshTokenData = generateRefreshToken();
-        
+
         // Store refresh token in database
         await user.addRefreshToken({
             token: refreshTokenData.hashedToken,
@@ -72,8 +75,8 @@ const registerUser = async (req, res) => {
 
         // Set cookies
         setTokensCookies(
-            res, 
-            accessToken, 
+            res,
+            accessToken,
             refreshTokenData.token,
             7 * 24 * 60 * 60 * 1000 // 7 days
         );
@@ -93,14 +96,14 @@ const registerUser = async (req, res) => {
 
     } catch (error) {
         console.error('Registration error:', error);
-        
+
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
                 message: 'User already exists with this email'
             });
         }
-        
+
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(err => err.message);
             return res.status(400).json({
@@ -108,7 +111,7 @@ const registerUser = async (req, res) => {
                 message: messages.join(', ')
             });
         }
-        
+
         res.status(500).json({
             success: false,
             message: 'Server error during registration'
@@ -119,11 +122,15 @@ const registerUser = async (req, res) => {
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
+
 const loginUser = async (req, res) => {
     try {
+        console.log('Login attempt:', { email: req.body.email });
+
         const { email, password } = req.body;
 
         if (!email || !password) {
+            console.log('Missing email or password');
             return res.status(400).json({
                 success: false,
                 message: 'Please provide email and password'
@@ -132,8 +139,9 @@ const loginUser = async (req, res) => {
 
         // Find user and include password
         const user = await User.findOne({ email }).select('+password');
-        
+
         if (!user) {
+            console.log('User not found:', email);
             return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials'
@@ -142,21 +150,23 @@ const loginUser = async (req, res) => {
 
         // Check password
         const isPasswordValid = await user.comparePassword(password);
-        
+
         if (!isPasswordValid) {
+            console.log('Invalid password for user:', email);
             return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials'
             });
         }
 
+        console.log('User authenticated successfully:', user._id);
         // Clean expired tokens before adding new one
         await user.cleanExpiredTokens();
 
         // Generate tokens
         const accessToken = generateAccessToken(user._id);
         const refreshTokenData = generateRefreshToken();
-        
+
         // Store refresh token in database
         await user.addRefreshToken({
             token: refreshTokenData.hashedToken,
@@ -167,8 +177,8 @@ const loginUser = async (req, res) => {
 
         // Set cookies
         setTokensCookies(
-            res, 
-            accessToken, 
+            res,
+            accessToken,
             refreshTokenData.token,
             7 * 24 * 60 * 60 * 1000 // 7 days
         );
@@ -187,11 +197,15 @@ const loginUser = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         res.status(500).json({
             success: false,
-            message: 'Server error',
-            error: error.message
+            message: 'Server error during login',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };
@@ -202,7 +216,7 @@ const loginUser = async (req, res) => {
 const refreshToken = async (req, res) => {
     try {
         const refreshToken = req.cookies.refresh_token;
-        
+
         if (!refreshToken) {
             return res.status(401).json({
                 success: false,
@@ -235,7 +249,7 @@ const refreshToken = async (req, res) => {
         // Generate new tokens
         const newAccessToken = generateAccessToken(user._id);
         const newRefreshTokenData = generateRefreshToken();
-        
+
         // Store new refresh token
         await user.addRefreshToken({
             token: newRefreshTokenData.hashedToken,
@@ -246,8 +260,8 @@ const refreshToken = async (req, res) => {
 
         // Set new cookies
         setTokensCookies(
-            res, 
-            newAccessToken, 
+            res,
+            newAccessToken,
             newRefreshTokenData.token,
             7 * 24 * 60 * 60 * 1000 // 7 days
         );
@@ -274,27 +288,27 @@ const refreshToken = async (req, res) => {
 const logoutUser = async (req, res) => {
     try {
         const refreshToken = req.cookies.refresh_token;
-        
+
         // Clear cookies
         res.clearCookie('access_token');
         res.clearCookie('refresh_token');
-        
+
         // If refresh token exists, remove it from database
         if (refreshToken) {
             const hashedToken = crypto
                 .createHash('sha256')
                 .update(refreshToken)
                 .digest('hex');
-            
+
             const user = await User.findOne({
                 'refreshTokens.token': hashedToken
             });
-            
+
             if (user) {
                 await user.removeRefreshToken(hashedToken);
             }
         }
-        
+
         res.status(200).json({
             success: true,
             message: 'Logged out successfully'
@@ -315,17 +329,17 @@ const logoutUser = async (req, res) => {
 const logoutAllDevices = async (req, res) => {
     try {
         const user = await User.findById(req.userId);
-        
+
         if (user) {
             // Clear all refresh tokens
             user.refreshTokens = [];
             await user.save();
         }
-        
+
         // Clear cookies
         res.clearCookie('access_token');
         res.clearCookie('refresh_token');
-        
+
         res.status(200).json({
             success: true,
             message: 'Logged out from all devices successfully'
@@ -346,7 +360,7 @@ const logoutAllDevices = async (req, res) => {
 const getCurrentUser = async (req, res) => {
     try {
         const user = await User.findById(req.userId).select('-password');
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,

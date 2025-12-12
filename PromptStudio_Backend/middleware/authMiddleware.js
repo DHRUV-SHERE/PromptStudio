@@ -1,15 +1,16 @@
 const jwt = require('jsonwebtoken');
 
+// authMiddleware.js - protect function
 const protect = (req, res, next) => {
     let token;
 
-    // Get token from headers
+    // 1. Check Authorization header
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
     }
-    // Get token from cookies
-    else if (req.cookies.token) {
-        token = req.cookies.token;
+    // 2. Check cookies
+    else if (req.cookies.access_token) {
+        token = req.cookies.access_token;
     }
 
     if (!token) {
@@ -20,7 +21,6 @@ const protect = (req, res, next) => {
     }
 
     try {
-        // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.userId = decoded.id;
         next();

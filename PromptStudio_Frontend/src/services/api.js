@@ -28,10 +28,10 @@ const processQueue = (error, token = null) => {
 api.interceptors.request.use(
     (config) => {
         // Get token from localStorage or cookie (if you're using localStorage)
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        }
+        // const token = localStorage.getItem('access_token');
+        // if (token) {
+        //     config.headers['Authorization'] = `Bearer ${token}`;
+        // }
         return config;
     },
     (error) => {
