@@ -13,8 +13,11 @@ class AIService {
         try {
             this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
             
-            // Try gemini-1.5-flash first (better free tier limits)
-            const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+            // Try different model names - gemini-2.0-flash is newer and more available
+            // You can also try 'gemini-1.5-flash-8b' or 'gemini-1.5-flash-latest'
+            const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest';
+            
+            console.log(`Attempting to initialize model: ${modelName}`);
             
             this.model = this.genAI.getGenerativeModel({ 
                 model: modelName,
@@ -119,7 +122,7 @@ Generate a business prompt:`
                 success: true,
                 prompt: generatedText,
                 category,
-                model: 'gemini-1.5-flash',
+                model: 'gemini-ai',
                 tokens: response.usageMetadata?.totalTokenCount || 0,
                 online: true
             };
@@ -137,7 +140,12 @@ Generate a business prompt:`
                 return this.generateOfflinePrompt(input, category, options);
             }
             if (error.message.includes('safety')) {
-                throw new Error('Content blocked by safety filters. Please modify your input.');
+                console.warn('Content blocked by safety filters. Using offline mode.');
+                return this.generateOfflinePrompt(input, category, options);
+            }
+            if (error.message.includes('model') || error.message.includes('not found')) {
+                console.warn('Model not found. Trying alternative approach or offline mode.');
+                return this.generateOfflinePrompt(input, category, options);
             }
             if (error.message.includes('network')) {
                 console.warn('Network error. Using offline mode.');
@@ -153,85 +161,189 @@ Generate a business prompt:`
     generateOfflinePrompt(input, category = 'creative', options = {}) {
         console.log('🔄 Generating offline prompt');
         
+        // Enhanced offline templates
         const baseTemplates = {
-            creative: `Create a detailed AI image generation prompt for: "${input}"
+            creative: `## Creative Prompt Generator
+**Theme:** ${input}
 
-Specify:
-• Visual style and composition
-• Color palette and lighting
-• Art style (photorealistic, digital art, painting, etc.)
-• Mood and atmosphere
-• Key elements to include
-• Technical specifications (aspect ratio, resolution, etc.)
+### Visual Specifications:
+- **Style:** Digital art, cinematic composition
+- **Color Palette:** Vibrant colors with contrasting highlights
+- **Lighting:** Dynamic lighting with soft shadows
+- **Atmosphere:** ${options.tone || 'Inspiring and imaginative'}
+- **Composition:** Rule of thirds, balanced elements
 
-Make it descriptive and specific.`,
+### Key Elements:
+1. Central subject based on "${input}"
+2. Supporting elements that enhance the theme
+3. Background that complements the main subject
+
+### Technical Details:
+- Resolution: 4K ultra HD
+- Aspect Ratio: 16:9
+- Render Quality: Photorealistic
+- Style Reference: Trending digital art styles
+
+### Additional Notes:
+- Optimized for AI image generation models
+- Includes specific artistic terminology
+- Balanced between creativity and clarity`,
             
-            marketing: `Create a marketing campaign prompt for: "${input}"
+            marketing: `## Marketing Campaign Generator
+**Product/Service:** ${input}
 
-Include:
-• Target audience demographics
-• Key messaging and value proposition
-• Call to action
-• Tone and voice guidelines
-• Platform-specific adaptations
-• Success metrics`,
+### Target Audience:
+- Demographics: 25-45 years, tech-savvy professionals
+- Interests: Innovation, productivity, digital tools
+- Pain Points: Time management, efficiency, quality
+
+### Key Messages:
+1. Value Proposition: How "${input}" solves problems
+2. Unique Selling Points: Key differentiators
+3. Emotional Appeal: Benefits beyond features
+
+### Campaign Elements:
+- **Headline:** Attention-grabbing, benefit-focused
+- **Subheadline:** Supporting details and features
+- **Body Copy:** Persuasive storytelling
+- **Call to Action:** Clear, compelling instruction
+
+### Tone & Voice:
+- ${options.tone || 'Professional yet approachable'}
+- Confident but not pushy
+- Benefit-oriented language
+
+### Platform Adaptation:
+- Social Media: Concise, visual, hashtag-friendly
+- Email: Personalized, value-focused
+- Website: SEO-optimized, conversion-focused`,
             
-            coding: `Create a programming task prompt for: "${input}"
+            coding: `## Programming Task Generator
+**Task Description:** ${input}
 
-Specify:
-• Programming language
-• Required functionality
-• Input/output format
-• Error handling requirements
-• Performance expectations
-• Testing requirements
-• Code style guidelines`,
+### Requirements:
+- **Language:** ${options.language || 'JavaScript/Python'}
+- **Functionality:** ${input}
+- **Input:** Clearly defined parameters and data types
+- **Output:** Expected format and structure
+
+### Specifications:
+- **Performance:** Efficient algorithms, optimal complexity
+- **Error Handling:** Graceful degradation, informative messages
+- **Testing:** Unit tests, edge cases, integration tests
+- **Documentation:** Code comments, API documentation
+
+### Code Style:
+- **Formatting:** Consistent indentation and naming
+- **Structure:** Modular, reusable components
+- **Best Practices:** Following language-specific guidelines
+
+### Deliverables:
+1. Working solution code
+2. Test suite with comprehensive coverage
+3. Documentation and usage examples
+4. Performance metrics if applicable`,
             
-            storytelling: `Create a storytelling prompt for: "${input}"
+            storytelling: `## Story Generator
+**Concept:** ${input}
 
-Develop:
-• Main characters with motivations
-• Setting and world-building details
-• Central conflict and plot progression
-• Themes and symbolism
-• Narrative style (first-person, third-person, etc.)
-• Pacing and structure`,
+### Characters:
+- **Protagonist:** Relatable character with clear motivations
+- **Antagonist:** Compelling opposition with depth
+- **Supporting Cast:** Characters that enhance the narrative
+
+### Setting:
+- **World:** ${options.style || 'Immersive and detailed'}
+- **Time Period:** Contemporary/fantasy/futuristic
+- **Location:** Vividly described environments
+
+### Plot Structure:
+- **Inciting Incident:** Event that starts the journey
+- **Rising Action:** Challenges and developments
+- **Climax:** Peak conflict and resolution
+- **Falling Action:** Consequences and aftermath
+- **Resolution:** Satisfying conclusion
+
+### Themes:
+- Central message or moral
+- Character development arcs
+- Symbolic elements
+
+### Writing Style:
+- **Narrative Voice:** ${options.tone || 'Engaging and descriptive'}
+- **Pacing:** Balanced action and reflection
+- **Dialogue:** Natural, character-revealing`,
             
-            business: `Create a business analysis prompt for: "${input}"
+            business: `## Business Strategy Generator
+**Focus Area:** ${input}
 
-Cover:
-• Problem statement and context
-• Stakeholder analysis
-• Data requirements and sources
-• Analytical framework
-• Expected deliverables
-• Timeline and milestones
-• Risk assessment`
+### Analysis Framework:
+- **SWOT Analysis:** Strengths, Weaknesses, Opportunities, Threats
+- **Market Research:** Target market, competitors, trends
+- **Financial Projections:** Revenue, costs, ROI
+
+### Strategy Components:
+- **Objectives:** SMART goals (Specific, Measurable, Achievable, Relevant, Time-bound)
+- **Tactics:** Actionable steps and initiatives
+- **Timeline:** Phased implementation schedule
+
+### Stakeholder Considerations:
+- **Internal:** Team capabilities, resources, constraints
+- **External:** Customers, partners, regulatory environment
+- **Market:** Trends, opportunities, challenges
+
+### Implementation Plan:
+- **Phase 1:** Foundation and setup
+- **Phase 2:** Core development
+- **Phase 3:** Launch and scaling
+- **Phase 4:** Optimization and growth
+
+### Success Metrics:
+- **KPIs:** Key performance indicators
+- **Milestones:** Critical checkpoints
+- **Reporting:** Progress tracking and analysis`
         };
         
         const basePrompt = baseTemplates[category] || baseTemplates.creative;
         
+        // Enhance with options
         let enhancedPrompt = basePrompt;
-        if (options.tone) enhancedPrompt += `\n\nTone: ${options.tone}`;
-        if (options.length) enhancedPrompt += `\nLength: ${options.length}`;
-        if (options.format) enhancedPrompt += `\nFormat: ${options.format}`;
-        if (options.style) enhancedPrompt += `\nStyle: ${options.style}`;
+        if (options.tone && !basePrompt.includes(options.tone)) {
+            enhancedPrompt += `\n\n**Tone Enhancement:** ${options.tone}`;
+        }
+        if (options.length) {
+            enhancedPrompt += `\n**Length Guideline:** ${options.length}`;
+        }
+        if (options.format && !basePrompt.includes('Format')) {
+            enhancedPrompt += `\n**Format:** ${options.format}`;
+        }
+        if (options.style && !basePrompt.includes(options.style)) {
+            enhancedPrompt += `\n**Style Reference:** ${options.style}`;
+        }
         
         return {
             success: true,
             prompt: enhancedPrompt,
             category,
-            model: 'offline-fallback',
-            tokens: 0,
+            model: 'offline-advanced',
+            tokens: Math.floor(enhancedPrompt.length / 4), // Approximate token count
             online: false,
-            note: 'Generated offline. Enable API key for enhanced AI-generated prompts.'
+            note: 'Generated with enhanced offline templates. Add GEMINI_API_KEY for AI-powered prompts.'
         };
     }
     
-    // Test the API connection
+    // Test the API connection with multiple model options
     async testConnection() {
         try {
-            if (!this.useAPI || !this.model) {
+            if (!process.env.GEMINI_API_KEY) {
+                return {
+                    success: false,
+                    message: 'GEMINI_API_KEY is not configured',
+                    mode: 'offline'
+                };
+            }
+            
+            if (!this.useAPI || !this.genAI) {
                 return {
                     success: false,
                     message: 'API is disabled or not initialized',
@@ -241,18 +353,41 @@ Cover:
             
             console.log('Testing Gemini API connection...');
             
-            const testPrompt = "Say 'Hello from PromptStudio' if you're working";
-            const result = await this.model.generateContent(testPrompt);
-            const response = await result.response;
-            const text = response.text();
+            // Try different models
+            const testModels = [
+                'gemini-1.5-flash-latest',
+                'gemini-1.5-flash-8b',
+                'gemini-1.0-pro',
+                'gemini-1.5-pro',
+                'gemini-2.0-flash-exp'
+            ];
             
-            console.log('✅ API Test Successful');
-            return {
-                success: true,
-                message: 'API connection successful',
-                response: text,
-                mode: 'online'
-            };
+            for (const modelName of testModels) {
+                try {
+                    console.log(`Testing model: ${modelName}`);
+                    const model = this.genAI.getGenerativeModel({ model: modelName });
+                    const testPrompt = "Say 'Hello from PromptStudio' if you're working";
+                    const result = await model.generateContent(testPrompt);
+                    const response = await result.response;
+                    const text = response.text();
+                    
+                    console.log(`✅ API Test Successful with model: ${modelName}`);
+                    this.model = model; // Set the working model
+                    return {
+                        success: true,
+                        message: `API connection successful with ${modelName}`,
+                        model: modelName,
+                        response: text,
+                        mode: 'online'
+                    };
+                } catch (modelError) {
+                    console.log(`Model ${modelName} failed: ${modelError.message}`);
+                    continue;
+                }
+            }
+            
+            throw new Error('All model tests failed');
+            
         } catch (error) {
             console.error('❌ API Test Failed:', error.message);
             return {
@@ -268,87 +403,15 @@ Cover:
         return {
             success: true,
             models: [
-                'gemini-1.5-flash',
+                'gemini-1.5-flash-latest',
+                'gemini-1.5-flash-8b',
+                'gemini-1.0-pro',
                 'gemini-1.5-pro',
-                'gemini-1.0-pro'
+                'gemini-2.0-flash-exp'
             ],
-            current: 'gemini-1.5-flash',
+            current: this.model ? 'dynamic' : 'offline',
             mode: this.useAPI ? 'online' : 'offline'
         };
-    }
-    
-    // Batch generate prompts
-    async batchGeneratePrompts(inputs, category = 'creative') {
-        try {
-            const results = [];
-            const errors = [];
-            
-            for (const input of inputs.slice(0, 5)) { // Limit to 5 per batch
-                try {
-                    const result = await this.generatePrompt(input, category);
-                    results.push(result);
-                } catch (error) {
-                    errors.push({ input, error: error.message });
-                }
-            }
-            
-            return {
-                success: results.length > 0,
-                results,
-                errors,
-                total: inputs.length,
-                successful: results.length,
-                mode: this.useAPI ? 'online' : 'offline'
-            };
-        } catch (error) {
-            console.error('Batch generation error:', error);
-            throw error;
-        }
-    }
-    
-    // Enhance existing prompt
-    async enhancePrompt(prompt, enhancementType = 'detailed') {
-        try {
-            if (!this.useAPI || !this.model) {
-                return {
-                    success: true,
-                    enhanced: prompt,
-                    model: 'offline-fallback',
-                    enhancementType,
-                    note: 'API disabled - returning original prompt'
-                };
-            }
-            
-            const enhancementPrompts = {
-                detailed: `You are a prompt enhancement specialist. Take the following prompt and make it more detailed, specific, and comprehensive. Add relevant details, context, and specifications:\n\nOriginal Prompt: ${prompt}\n\nEnhanced Prompt:`,
-                concise: `Make this prompt more concise while preserving all essential information:\n\n${prompt}\n\nConcise version:`,
-                creative: `Add creative flair and imaginative elements to this prompt:\n\n${prompt}\n\nCreative version:`,
-                professional: `Make this prompt more professional and business-appropriate:\n\n${prompt}\n\nProfessional version:`,
-                structured: `Add structure, bullet points, and clear sections to this prompt:\n\n${prompt}\n\nStructured version:`
-            };
-            
-            const enhanceTemplate = enhancementPrompts[enhancementType] || enhancementPrompts.detailed;
-            
-            const result = await this.model.generateContent(enhanceTemplate);
-            const response = await result.response;
-            const enhanced = response.text();
-            
-            return {
-                success: true,
-                enhanced,
-                model: 'gemini-1.5-flash',
-                enhancementType
-            };
-        } catch (error) {
-            console.error('Enhancement error:', error);
-            return {
-                success: true,
-                enhanced: prompt,
-                model: 'offline-fallback',
-                enhancementType,
-                note: 'Enhancement failed - returning original prompt'
-            };
-        }
     }
     
     // Get categories
@@ -359,23 +422,13 @@ Cover:
     // Get model info
     getModelInfo() {
         return {
-            name: this.useAPI ? 'gemini-1.5-flash' : 'offline-fallback',
+            name: this.useAPI ? 'gemini-dynamic' : 'offline-advanced',
             status: this.useAPI ? 'online' : 'offline',
             maxTokens: 2048,
             temperature: 0.9,
-            capabilities: this.useAPI ? ['text-generation', 'prompt-optimization'] : ['offline-generation'],
-            provider: this.useAPI ? 'Google Gemini' : 'Offline Engine',
-            note: this.useAPI ? null : 'Add GEMINI_API_KEY to enable AI generation'
-        };
-    }
-    
-    // Toggle API mode
-    toggleAPIMode(enabled) {
-        this.useAPI = enabled;
-        return {
-            success: true,
-            message: `API mode ${enabled ? 'enabled' : 'disabled'}`,
-            mode: enabled ? 'online' : 'offline'
+            capabilities: this.useAPI ? ['text-generation', 'prompt-optimization'] : ['offline-generation', 'enhanced-templates'],
+            provider: this.useAPI ? 'Google Gemini' : 'PromptStudio Offline Engine',
+            note: this.useAPI ? null : 'Add GEMINI_API_KEY environment variable to enable AI generation'
         };
     }
 }
