@@ -6,28 +6,33 @@ const {
 } = require('../utils/tokenUtils');
 const crypto = require('crypto');
 
-// authController.js - Update setTokensCookies function
+// authController.js - Update setTokensCookies
 const setTokensCookies = (res, accessToken, refreshToken, maxAge) => {
     const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Get the actual domain from the request
+    const domain = isProduction ? 
+        new URL(process.env.APP_URL || 'https://promptstudio-vqbn.onrender.com').hostname : 
+        undefined;
 
     // Set access token cookie
     res.cookie('access_token', accessToken, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax', // ✅ Use 'none' for cross-domain
+        sameSite: isProduction ? 'none' : 'lax',
         maxAge: 15 * 60 * 1000, // 15 minutes
         path: '/',
-        domain: isProduction ? '.render.com' : undefined // ✅ Add domain for production
+        domain: domain // Use actual domain, not .render.com
     });
-
+    
     // Set refresh token cookie
     res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax', // ✅ Use 'none' for cross-domain
+        sameSite: isProduction ? 'none' : 'lax',
         maxAge: maxAge,
         path: '/',
-        domain: isProduction ? '.render.com' : undefined // ✅ Add domain for production
+        domain: domain // Use actual domain
     });
 };
 // @desc    Register a new user

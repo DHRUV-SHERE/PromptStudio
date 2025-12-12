@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, startTokenRefreshTimer, clearTokenRefreshTimer } from '../services/api'; // Import timer functions
 
 const AuthContext = createContext({});
 
@@ -11,18 +11,43 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         checkAuth();
+        
+        // Cleanup timer on unmount
+        return () => {
+            clearTokenRefreshTimer();
+        };
     }, []);
 
     const checkAuth = async () => {
         try {
             const response = await authAPI.getCurrentUser();
             setUser(response.user);
+            
+            // Start proactive refresh timer (15 minutes)
+            startTokenRefreshTimer(15);
+            
+            return true;
         } catch (error) {
             console.log('Auth check failed:', error.message);
-            setUser(null);
             
-            // Clear invalid token
-            localStorage.removeItem('access_token');
+            // Try to refresh token if it's a 401
+            if (error.response?.status === 401) {
+                try {
+                    console.log('🔄 Auto-refreshing token...');
+                    await authAPI.refreshToken();
+                    
+                    // Try again after refresh
+                    const retryResponse = await authAPI.getCurrentUser();
+                    setUser(retryResponse.user);
+                    startTokenRefreshTimer(15);
+                    return true;
+                } catch (refreshError) {
+                    console.log('Auto-refresh failed:', refreshError.message);
+                }
+            }
+            
+            setUser(null);
+            return false;
         } finally {
             setLoading(false);
         }
@@ -32,11 +57,13 @@ export const AuthProvider = ({ children }) => {
         try {
             const result = await authAPI.login(credentials);
             if (result.success && result.accessToken) {
-                // Store token
+                // Store token in localStorage
                 localStorage.setItem('access_token', result.accessToken);
                 setUser(result.user);
                 
-                // ✅ Return user data for redirection
+                // Start proactive refresh timer
+                startTokenRefreshTimer(15);
+                
                 return {
                     success: true,
                     user: result.user
@@ -55,7 +82,9 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('access_token', result.accessToken);
                 setUser(result.user);
                 
-                // ✅ Return user data for redirection
+                // Start proactive refresh timer
+                startTokenRefreshTimer(15);
+                
                 return {
                     success: true,
                     user: result.user
@@ -73,8 +102,9 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             console.error('Logout API error:', error);
         } finally {
-            // Always clear local state
+            // Always clear
             localStorage.removeItem('access_token');
+            clearTokenRefreshTimer();
             setUser(null);
         }
     };
@@ -86,6 +116,7 @@ export const AuthProvider = ({ children }) => {
             console.error('Logout all error:', error);
         } finally {
             localStorage.removeItem('access_token');
+            clearTokenRefreshTimer();
             setUser(null);
         }
     };
