@@ -6,14 +6,33 @@ const {
 } = require('../utils/tokenUtils');
 const crypto = require('crypto');
 
-// authController.js - Update setTokensCookies
-const setTokensCookies = (res, accessToken, refreshToken, maxAge) => {
+// authController.js - FIXED setTokensCookies function
+const setTokensCookies = (req, res, accessToken, refreshToken, maxAge) => {
     const isProduction = process.env.NODE_ENV === 'production';
     
-    // Get the actual domain from the request
-    const domain = isProduction ? 
-        new URL(process.env.APP_URL || 'https://promptstudio-vqbn.onrender.com').hostname : 
-        undefined;
+    // Get the request origin to determine domain
+    const requestOrigin = req.headers.origin || '';
+    let domain = undefined;
+    
+    if (isProduction) {
+        // For cross-domain, we need specific domain, not .render.com
+        // Check if request is from vercel.app
+        if (requestOrigin.includes('thepromptstudio.vercel.app')) {
+            // For cross-domain, we need to be more specific
+            domain = 'promptstudio-vqbn.onrender.com'; // Backend's own domain
+        } else if (requestOrigin.includes('render.com')) {
+            // For same-origin requests
+            domain = 'promptstudio-vqbn.onrender.com';
+        }
+        // If no origin matches, don't set domain (let browser decide)
+    }
+
+    console.log('🍪 Setting cookies with:', {
+        isProduction,
+        requestOrigin,
+        domain,
+        sameSite: isProduction ? 'none' : 'lax'
+    });
 
     // Set access token cookie
     res.cookie('access_token', accessToken, {
@@ -22,7 +41,7 @@ const setTokensCookies = (res, accessToken, refreshToken, maxAge) => {
         sameSite: isProduction ? 'none' : 'lax',
         maxAge: 15 * 60 * 1000, // 15 minutes
         path: '/',
-        domain: domain // Use actual domain, not .render.com
+        domain: domain
     });
     
     // Set refresh token cookie
@@ -32,7 +51,7 @@ const setTokensCookies = (res, accessToken, refreshToken, maxAge) => {
         sameSite: isProduction ? 'none' : 'lax',
         maxAge: maxAge,
         path: '/',
-        domain: domain // Use actual domain
+        domain: domain
     });
 };
 // @desc    Register a new user
@@ -79,13 +98,7 @@ const registerUser = async (req, res) => {
         });
 
         // Set cookies
-        setTokensCookies(
-            res,
-            accessToken,
-            refreshTokenData.token,
-            7 * 24 * 60 * 60 * 1000 // 7 days
-        );
-
+        setTokensCookies(req, res, accessToken, refreshTokenData.token, 7 * 24 * 60 * 60 * 1000);
         // Send response
         res.status(201).json({
             success: true,
@@ -181,12 +194,7 @@ const loginUser = async (req, res) => {
         });
 
         // Set cookies
-        setTokensCookies(
-            res,
-            accessToken,
-            refreshTokenData.token,
-            7 * 24 * 60 * 60 * 1000 // 7 days
-        );
+        setTokensCookies(req, res, accessToken, refreshTokenData.token, 7 * 24 * 60 * 60 * 1000);
 
         // Send response
         res.status(200).json({
@@ -264,12 +272,7 @@ const refreshToken = async (req, res) => {
         });
 
         // Set new cookies
-        setTokensCookies(
-            res,
-            newAccessToken,
-            newRefreshTokenData.token,
-            7 * 24 * 60 * 60 * 1000 // 7 days
-        );
+    setTokensCookies(req, res, newAccessToken, newRefreshTokenData.token, 7 * 24 * 60 * 60 * 1000);
 
         res.status(200).json({
             success: true,
