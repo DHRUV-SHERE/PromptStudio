@@ -12,8 +12,7 @@ const Navigation = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
-
-  // Navigation items based on auth state
+    // Navigation items based on auth state
   const publicLinks = [
     { to: "/", label: "Home" },
     { to: "/about", label: "About" },
@@ -28,13 +27,14 @@ const Navigation = () => {
     { to: "/history", label: "History" },
   ];
 
-  const navLinks = isAuthenticated ? authLinks : publicLinks;
+  const navLinks = isAuthenticated ? authLinks : publicLinks;  
 
   const handleLogout = async () => {
     await logout();
     setDropdownOpen(false);
-    navigate("/");
+    navigate("/login"); // ✅ Redirect to login after logout
   };
+
 
   return (
     <nav className="glass border-b border-border/50 sticky top-0 z-50">

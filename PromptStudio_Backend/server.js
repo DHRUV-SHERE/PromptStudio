@@ -16,7 +16,7 @@ connectDB();
 const app = express();
 
 const corsOptions = {
-    origin: ['https://thepromptstudio.vercel.app', 'http://localhost:5173'],
+    origin: ['https://thepromptstudio.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
     credentials: true,
     optionsSuccessStatus: 200,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
