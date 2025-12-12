@@ -9,7 +9,7 @@ const {
     getContactStats
 } = require('../controller/contactController');
 const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/authorizeMiddleware');
+const { authorize } = require('../middleware/authrizeMiddleware');
 
 // Public routes
 router.post('/', submitContactForm);
