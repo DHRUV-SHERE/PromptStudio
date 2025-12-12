@@ -55,7 +55,7 @@ api.interceptors.response.use(
 
             try {
                 const response = await axios.post(
-                    'https://promptstudio-av40.onrender.com/api/auth/refresh',
+                    'https://promptstudio-vqbn.onrender.com/api/auth/refresh',
                     {},
                     { 
                         withCredentials: true,
