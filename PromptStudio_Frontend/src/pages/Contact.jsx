@@ -97,7 +97,7 @@ const Contact = () => {
                 {
                   icon: Mail,
                   title: "Email Us",
-                  description: "hello@promptstudio.com",
+                  description: "sheredhruv@gmail.com",
                   subtitle: "We reply within 24 hours",
                 },
                 {
