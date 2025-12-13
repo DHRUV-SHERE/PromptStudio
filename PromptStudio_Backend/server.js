@@ -76,6 +76,57 @@ app.use('/api/auth', authRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/prompts', promptRoutes);
 
+
+// In your server.js, add a test route BEFORE authentication:
+app.post('/api/test-ai', async (req, res) => {
+    try {
+        const aiService = require('./services/aiService');
+        const result = await aiService.generatePrompt(
+            'test prompt',
+            'creative',
+            {}
+        );
+        res.json({ success: true, result });
+    } catch (error) {
+        console.error('AI Service Test Error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+
+// Debug endpoint to test authentication
+app.get('/api/debug/auth-test', (req, res) => {
+    console.log('🔍 Auth Debug - Request Details:', {
+        headers: {
+            authorization: req.headers.authorization,
+            origin: req.headers.origin,
+            cookie: req.headers.cookie ? 'Present' : 'Missing'
+        },
+        cookies: req.cookies,
+        query: req.query
+    });
+    
+    res.json({
+        success: true,
+        message: 'Auth debug endpoint',
+        data: {
+            headersPresent: {
+                authorization: !!req.headers.authorization,
+                origin: req.headers.origin,
+                cookie: !!req.headers.cookie
+            },
+            cookies: req.cookies,
+            env: {
+                nodeEnv: process.env.NODE_ENV,
+                jwtSecretSet: !!process.env.JWT_SECRET
+            }
+        }
+    });
+});
+
 // Test route
 app.get('/api/test', (req, res) => {
     res.json({

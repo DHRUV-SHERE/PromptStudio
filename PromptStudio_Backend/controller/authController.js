@@ -6,54 +6,41 @@ const {
 } = require('../utils/tokenUtils');
 const crypto = require('crypto');
 
-// authController.js - FIXED setTokensCookies function
 const setTokensCookies = (req, res, accessToken, refreshToken, maxAge) => {
     const isProduction = process.env.NODE_ENV === 'production';
-
-    // Get the request origin to determine domain
     const requestOrigin = req.headers.origin || '';
-    let domain = undefined;
-
-    if (isProduction) {
-        // For cross-domain, we need specific domain, not .render.com
-        // Check if request is from vercel.app
-        if (requestOrigin.includes('thepromptstudio.vercel.app')) {
-            // For cross-domain, we need to be more specific
-            domain = 'promptstudio-vqbn.onrender.com'; // Backend's own domain
-        } else if (requestOrigin.includes('render.com')) {
-            // For same-origin requests
-            domain = 'promptstudio-vqbn.onrender.com';
-        }
-        // If no origin matches, don't set domain (let browser decide)
+    
+    console.log('🍪 Setting Cookies - Origin:', requestOrigin);
+    
+    // Cookie options for cross-domain
+    const cookieOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/'
+    };
+    
+    // Set domain only for cross-domain requests
+    if (isProduction && requestOrigin.includes('vercel.app')) {
+        // For Vercel frontend -> Render backend
+        cookieOptions.domain = 'promptstudio-vqbn.onrender.com';
     }
-
-    console.log('🍪 Setting cookies with:', {
-        isProduction,
-        requestOrigin,
-        domain,
-        sameSite: isProduction ? 'none' : 'lax'
-    });
-
-    // Set access token cookie
+    
+    // Set access token (15 minutes)
     res.cookie('access_token', accessToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        maxAge: 15 * 60 * 1000, // 15 minutes
-        path: '/',
-        domain: domain
+        ...cookieOptions,
+        maxAge: 15 * 60 * 1000
     });
-
-    // Set refresh token cookie
+    
+    // Set refresh token (7 days)
     res.cookie('refresh_token', refreshToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        maxAge: maxAge,
-        path: '/',
-        domain: domain
+        ...cookieOptions,
+        maxAge: maxAge
     });
+    
+    console.log('✅ Cookies set with options:', cookieOptions);
 };
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public

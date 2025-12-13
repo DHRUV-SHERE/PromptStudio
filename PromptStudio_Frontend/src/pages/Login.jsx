@@ -381,7 +381,7 @@ const Login = () => {
       </div>
 
       {/* Add CSS animations */}
-      <style jsx>{`
+      <style jsx ="true">{`
         @keyframes float {
           0%, 100% { transform: translateY(0) translateX(0); }
           50% { transform: translateY(-20px) translateX(10px); }

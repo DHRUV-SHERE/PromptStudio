@@ -1,22 +1,28 @@
 import { useState, useEffect } from "react";
-import { Copy, Check, RefreshCw, Save, Sparkles, Plus, X, AlertCircle, ChevronDown, Zap } from "lucide-react";
-import CategorySidebar from "../components/CatrgorySideabar";
-import { authAPI } from "../services/api"; // Import your API service
-import { useAuth } from "../context/authContext"; // Import auth context
+import { 
+  Copy, Check, RefreshCw, Save, Sparkles, Plus, X, 
+  AlertCircle, ChevronDown, Zap, Menu, X as XIcon 
+} from "lucide-react";
+import CategorySidebar from "../components/CategorySideabar";
+import { authAPI } from "../services/api";
+import { useAuth } from "../context/authContext";
 
 // Style options for all categories
 const styleOptions = [
-  "Modern", "Minimalist", "Vibrant", "Professional", "Creative", "Elegant", "Bold", "Retro", "Futuristic"
+  "Modern", "Minimalist", "Vibrant", "Professional", "Creative", 
+  "Elegant", "Bold", "Retro", "Futuristic", "Clean", "Artistic"
 ];
 
 // Tone options for all categories
 const toneOptions = [
-  "Friendly", "Professional", "Casual", "Formal", "Energetic", "Authoritative", "Playful", "Serious", "Inspirational"
+  "Friendly", "Professional", "Casual", "Formal", "Energetic", 
+  "Authoritative", "Playful", "Serious", "Inspirational", "Conversational"
 ];
 
 // Color palette options
 const colorOptions = [
-  "Vibrant Colors", "Pastel Colors", "Monochrome", "Warm Tones", "Cool Tones", "Dark Mode", "Light Mode", "Neon Colors"
+  "Vibrant Colors", "Pastel Colors", "Monochrome", "Warm Tones", 
+  "Cool Tones", "Dark Mode", "Light Mode", "Neon Colors", "Earth Tones"
 ];
 
 // Category mapping to backend categories
@@ -31,14 +37,59 @@ const categoryMap = {
   business: "business"
 };
 
+// Category-specific dynamic fields
+const categoryFields = {
+  image: [
+    { name: "Aspect Ratio", placeholder: "e.g., 16:9, 1:1, 4:3" },
+    { name: "Lighting", placeholder: "e.g., Soft, Dramatic, Natural" },
+    { name: "Art Style", placeholder: "e.g., Photorealistic, Cartoon, Painting" }
+  ],
+  website: [
+    { name: "Platform", placeholder: "e.g., React, WordPress, Shopify" },
+    { name: "Target Audience", placeholder: "e.g., Young adults, Businesses" },
+    { name: "Key Features", placeholder: "e.g., E-commerce, Blog, Portfolio" }
+  ],
+  video: [
+    { name: "Duration", placeholder: "e.g., 30 seconds, 2 minutes" },
+    { name: "Platform", placeholder: "e.g., YouTube, TikTok, Instagram" },
+    { name: "Music Style", placeholder: "e.g., Upbeat, Calm, Epic" }
+  ],
+  coding: [
+    { name: "Language", placeholder: "e.g., JavaScript, Python, Java" },
+    { name: "Framework", placeholder: "e.g., React, Django, Spring" },
+    { name: "Complexity", placeholder: "e.g., Beginner, Intermediate, Advanced" }
+  ],
+  data: [
+    { name: "Methodology", placeholder: "e.g., Statistical, Machine Learning" },
+    { name: "Data Type", placeholder: "e.g., Numerical, Text, Time Series" },
+    { name: "Tools", placeholder: "e.g., Python, R, Tableau" }
+  ],
+  social: [
+    { name: "Platform", placeholder: "e.g., Instagram, Twitter, LinkedIn" },
+    { name: "Target Audience", placeholder: "e.g., Teenagers, Professionals" },
+    { name: "Hashtags", placeholder: "e.g., #AI, #Tech, #Digital" }
+  ],
+  content: [
+    { name: "Writing Style", placeholder: "e.g., Blog Post, Article, Story" },
+    { name: "Word Count", placeholder: "e.g., 500, 1000, 2000 words" },
+    { name: "Keywords", placeholder: "e.g., AI, Technology, Innovation" }
+  ],
+  business: [
+    { name: "Industry", placeholder: "e.g., Tech, Healthcare, Retail" },
+    { name: "Target Audience", placeholder: "e.g., Investors, Customers" },
+    { name: "Goals", placeholder: "e.g., Increase sales, Brand awareness" }
+  ]
+};
+
 const Generator = () => {
-  const { isAuthenticated, user } = useAuth(); // Get auth state
+  const { isAuthenticated, user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("image");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [usageStats, setUsageStats] = useState(null);
   const [savedPrompts, setSavedPrompts] = useState([]);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   
   // Base form states
   const [theme, setTheme] = useState("");
@@ -63,8 +114,7 @@ const Generator = () => {
   const loadUsageStats = async () => {
     try {
       const response = await authAPI.getCurrentUser();
-      // You might need to add prompt stats to your user model
-      // For now, we'll use localStorage or make a separate endpoint
+      // Add prompt stats logic here
     } catch (error) {
       console.error("Failed to load usage stats:", error);
     }
@@ -76,10 +126,6 @@ const Generator = () => {
   };
 
   const showToast = (message, type = "success") => {
-    // Your existing toast implementation
-    console.log(`Toast: ${message} (${type})`);
-    
-    // Remove any existing toasts
     const existingToasts = document.querySelectorAll('.custom-toast');
     existingToasts.forEach(toast => {
       if (toast.parentNode) {
@@ -167,21 +213,18 @@ const Generator = () => {
   const buildPromptInput = () => {
     let input = `Create a ${getCategoryName(selectedCategory)} with the following specifications:\n\n`;
     
-    // Add base fields
     if (theme) input += `• Theme/Subject: ${theme}\n`;
     if (style) input += `• Style: ${style}\n`;
     if (colorPalette) input += `• Color Palette: ${colorPalette}\n`;
     if (tone) input += `• Tone: ${tone}\n`;
     if (details) input += `• Details: ${details}\n`;
     
-    // Add dynamic fields
     Object.entries(dynamicFields).forEach(([field, value]) => {
       if (value) {
         input += `• ${field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}: ${value}\n`;
       }
     });
     
-    // Add custom fields
     customFields.forEach(field => {
       if (field.value) {
         input += `• ${field.label}: ${field.value}\n`;
@@ -192,8 +235,6 @@ const Generator = () => {
   };
 
   const generatePrompt = async () => {
-    console.log("Generate button clicked");
-    
     if (!theme.trim()) {
       showToast("Please enter a theme/topic", "error");
       return;
@@ -216,7 +257,7 @@ const Generator = () => {
       if (colorPalette) options.colorPalette = colorPalette;
       
       const result = await authAPI.generatePrompt({
-        input: theme, // Use theme as main input
+        input: theme,
         category: backendCategory,
         options: options
       });
@@ -225,7 +266,6 @@ const Generator = () => {
         setGeneratedPrompt(result.data.generatedPrompt);
         showToast("Prompt generated successfully!");
         
-        // Update usage stats
         if (result.data.dailyUsage) {
           setUsageStats({
             used: result.data.dailyUsage.split('/')[0],
@@ -242,21 +282,20 @@ const Generator = () => {
                           error.message || 
                           "Failed to generate prompt. Please try again.";
       
-      // Check for rate limit error
       if (errorMessage.includes("limit reached") || errorMessage.includes("429")) {
         showToast("Daily limit reached! Upgrade for unlimited prompts.", "error");
       } else {
         showToast(errorMessage, "error");
       }
       
-      // Fallback to local generation if API fails
+      // Fallback to local generation
       setTimeout(() => {
         let fallbackPrompt = `Create a ${getCategoryName(selectedCategory)} with theme: "${theme}"`;
-if (style) fallbackPrompt += ` in ${style} style`;
-if (tone) fallbackPrompt += ` with ${tone} tone`;
-if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
+        if (style) fallbackPrompt += ` in ${style} style`;
+        if (tone) fallbackPrompt += ` with ${tone} tone`;
+        if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
         setGeneratedPrompt(fallbackPrompt);
-        showToast("Using fallback generation (API unavailable)", "info");
+        showToast("Using fallback generation", "info");
       }, 500);
     } finally {
       setIsLoading(false);
@@ -264,7 +303,7 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
   };
 
   const getCategoryName = (categoryId) => {
-    const categoryMap = {
+    const categoryNames = {
       image: "image generation prompt",
       website: "website creation prompt",
       video: "video creation prompt",
@@ -274,100 +313,8 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
       content: "content writing prompt",
       business: "business strategy prompt"
     };
-    return categoryMap[categoryId] || "AI prompt";
+    return categoryNames[categoryId] || "AI prompt";
   };
-
-  const copyToClipboard = async () => {
-    console.log("Copy button clicked");
-    
-    if (!generatedPrompt) {
-      showToast("No prompt to copy", "error");
-      return;
-    }
-    
-    try {
-      await navigator.clipboard.writeText(generatedPrompt);
-      setCopied(true);
-      showToast("Prompt copied to clipboard!");
-      
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-      showToast("Failed to copy to clipboard", "error");
-    }
-  };
-
-  const savePrompt = async () => {
-    console.log("Save button clicked");
-    
-    if (!generatedPrompt) {
-      showToast("No prompt to save", "error");
-      return;
-    }
-    
-    try {
-      // Save to localStorage
-      const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '[]');
-      const newPrompt = {
-        id: Date.now(),
-        prompt: generatedPrompt,
-        category: selectedCategory,
-        theme: theme,
-        date: new Date().toISOString(),
-      };
-      
-      savedPrompts.push(newPrompt);
-      localStorage.setItem('savedPrompts', JSON.stringify(savedPrompts));
-      setSavedPrompts(savedPrompts);
-      
-      // If you have a backend endpoint for saving prompts, you can call it here
-      // await authAPI.savePrompt({ prompt: generatedPrompt, category: selectedCategory });
-      
-      showToast("Prompt saved successfully!");
-    } catch (error) {
-      console.error("Save error:", error);
-      showToast("Failed to save prompt", "error");
-    }
-  };
-
-  const regeneratePrompt = () => {
-    console.log("Regenerate button clicked");
-    generatePrompt();
-  };
-
-  const CustomSelect = ({ label, value, onChange, options, placeholder }) => (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-foreground block">
-        {label}
-      </label>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => {
-            console.log(`${label} changed to:`, e.target.value);
-            onChange(e.target.value);
-          }}
-          className="w-full bg-background border border-border/70 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all cursor-pointer pr-10 appearance-none text-foreground"
-          style={{ 
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239C27B0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "right 1rem center",
-            backgroundSize: "1em"
-          }}
-        >
-          <option value="" className="text-muted-foreground">{placeholder || `Select ${label.toLowerCase()}`}</option>
-          {options.map(option => (
-            <option key={option} value={option} className="text-foreground bg-card">{option}</option>
-          ))}
-        </select>
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-          <ChevronDown className="h-4 w-4 text-primary" />
-        </div>
-      </div>
-    </div>
-  );
 
   const getCurrentCategory = () => {
     const categories = [
@@ -397,24 +344,145 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
     return descriptions[selectedCategory] || "";
   };
 
+  const copyToClipboard = async () => {
+    if (!generatedPrompt) {
+      showToast("No prompt to copy", "error");
+      return;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(generatedPrompt);
+      setCopied(true);
+      showToast("Prompt copied to clipboard!");
+      
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      showToast("Failed to copy to clipboard", "error");
+    }
+  };
+
+  const savePrompt = async () => {
+    if (!generatedPrompt) {
+      showToast("No prompt to save", "error");
+      return;
+    }
+    
+    try {
+      const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '[]');
+      const newPrompt = {
+        id: Date.now(),
+        prompt: generatedPrompt,
+        category: selectedCategory,
+        theme: theme,
+        date: new Date().toISOString(),
+      };
+      
+      savedPrompts.push(newPrompt);
+      localStorage.setItem('savedPrompts', JSON.stringify(savedPrompts));
+      setSavedPrompts(savedPrompts);
+      
+      showToast("Prompt saved successfully!");
+    } catch (error) {
+      console.error("Save error:", error);
+      showToast("Failed to save prompt", "error");
+    }
+  };
+
+  const regeneratePrompt = () => {
+    generatePrompt();
+  };
+
+  const CustomSelect = ({ label, value, onChange, options, placeholder }) => (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-foreground block">
+        {label}
+      </label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full bg-background border border-border/70 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all cursor-pointer pr-10 appearance-none text-foreground"
+          style={{ 
+            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239C27B0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "right 1rem center",
+            backgroundSize: "1em"
+          }}
+        >
+          <option value="" className="text-muted-foreground">{placeholder || `Select ${label.toLowerCase()}`}</option>
+          {options.map(option => (
+            <option key={option} value={option} className="text-foreground bg-card">{option}</option>
+          ))}
+        </select>
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          <ChevronDown className="h-4 w-4 text-primary" />
+        </div>
+      </div>
+    </div>
+  );
+
   const renderCategoryFields = () => {
-    // Your existing renderCategoryFields function
-    // ... keep your existing code ...
+    const fields = categoryFields[selectedCategory] || [];
+    
+    return fields.map((field) => (
+      <div key={field.name} className="space-y-2">
+        <label className="text-sm font-medium text-foreground block">
+          {field.name}
+        </label>
+        <input
+          type="text"
+          value={dynamicFields[field.name] || ""}
+          onChange={(e) => handleDynamicFieldChange(field.name, e.target.value)}
+          placeholder={field.placeholder}
+          className="w-full bg-background border border-border/70 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all text-foreground"
+        />
+      </div>
+    ));
   };
 
   return (
     <div className="min-h-screen gradient-hero">
-      <main className="flex">
-        {/* Category Sidebar */}
-        <CategorySidebar 
-          selectedCategory={selectedCategory} 
-          onSelectCategory={setSelectedCategory} 
-        />
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setShowMobileMenu(!showMobileMenu)}
+        className="lg:hidden fixed top-4 left-4 z-50 glass p-3 rounded-xl"
+      >
+        {showMobileMenu ? <XIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
+
+      <main className="flex flex-col lg:flex-row">
+        {/* Category Sidebar - Mobile Overlay */}
+        <div className={`lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity ${
+          showMobileMenu ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`} onClick={() => setShowMobileMenu(false)} />
+        
+        <div className={`lg:hidden fixed top-0 left-0 h-full w-80 z-50 transform transition-transform ${
+          showMobileMenu ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+          <CategorySidebar 
+            selectedCategory={selectedCategory} 
+            onSelectCategory={(cat) => {
+              setSelectedCategory(cat);
+              setShowMobileMenu(false);
+            }} 
+          />
+        </div>
+
+        {/* Category Sidebar - Desktop */}
+        <div className="hidden lg:block">
+          <CategorySidebar 
+            selectedCategory={selectedCategory} 
+            onSelectCategory={setSelectedCategory} 
+          />
+        </div>
         
         {/* Main Content */}
-        <div className="flex-1 p-6 md:p-8 overflow-y-auto">
-          <div className="max-w-5xl mx-auto space-y-6">
-            {/* Header with Auth Status */}
+        <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto w-full">
+          <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+            {/* Header */}
             <div className="text-center space-y-3">
               <div className="flex items-center justify-center gap-3">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl gradient-primary flex items-center justify-center">
@@ -433,7 +501,7 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <div className="px-3 py-1 glass rounded-full flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                  <span className="text-sm">Currently generating: <strong>{getCurrentCategory()}</strong></span>
+                  <span className="text-sm">Currently: <strong>{getCurrentCategory()}</strong></span>
                 </div>
                 
                 {isAuthenticated && usageStats && (
@@ -454,43 +522,40 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
             </div>
 
             {/* Category Info */}
-            <div className="glass rounded-2xl md:rounded-3xl p-4 md:p-6 border-gradient animate-fade-in">
-              <div className="flex items-start gap-4">
+            <div className="glass rounded-2xl md:rounded-3xl p-4 md:p-6 border-gradient">
+              <div className="flex items-start gap-3 sm:gap-4">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-xl md:text-2xl font-bold">{getCurrentCategory()}</h2>
-                  <p className="text-sm text-muted-foreground mt-1">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold truncate">{getCurrentCategory()}</h2>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                     {getCategoryDescription()}
                   </p>
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap gap-1 sm:gap-2 mt-3">
                     <span className="px-2 py-1 bg-primary/10 rounded-full text-xs">Customizable</span>
                     <span className="px-2 py-1 bg-primary/10 rounded-full text-xs">AI Optimized</span>
                     <span className="px-2 py-1 bg-primary/10 rounded-full text-xs">Multi-format</span>
-                    <span className="px-2 py-1 bg-accent/10 text-accent rounded-full text-xs">Powered by Gemini AI</span>
+                    <span className="px-2 py-1 bg-accent/10 text-accent rounded-full text-xs">Gemini AI</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Form Container */}
-            <div className="glass rounded-2xl md:rounded-3xl p-4 md:p-6 space-y-6 animate-fade-in-delay border-gradient">
+            <div className="glass rounded-2xl md:rounded-3xl p-4 md:p-6 space-y-4 sm:space-y-6 border-gradient">
               <h3 className="text-lg md:text-xl font-bold">Customize Your Prompt</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                 {/* Theme Field */}
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium text-foreground block">
                     Theme / Topic *
                   </label>
                   <input
                     type="text"
                     value={theme}
-                    onChange={(e) => {
-                      console.log("Theme changed:", e.target.value);
-                      setTheme(e.target.value);
-                    }}
+                    onChange={(e) => setTheme(e.target.value)}
                     placeholder="e.g., Futuristic city, E-commerce store, Data analysis..."
                     className="w-full bg-background border border-border/70 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all text-foreground"
                     required
@@ -517,7 +582,7 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
 
                 {/* Color Palette Dropdown */}
                 <CustomSelect
-                  label="Color Palette / Visual Theme"
+                  label="Color Palette"
                   value={colorPalette}
                   onChange={setColorPalette}
                   options={colorOptions}
@@ -535,10 +600,7 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
                 </label>
                 <textarea
                   value={details}
-                  onChange={(e) => {
-                    console.log("Details changed:", e.target.value);
-                    setDetails(e.target.value);
-                  }}
+                  onChange={(e) => setDetails(e.target.value)}
                   placeholder="Add specific requirements, constraints, or special instructions..."
                   className="w-full bg-background border border-border/70 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all min-h-32 resize-y text-foreground"
                   rows={4}
@@ -547,18 +609,15 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
 
               {/* Custom Fields Section */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <h4 className="font-semibold">Custom Requirements</h4>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       value={newCustomField}
-                      onChange={(e) => {
-                        console.log("New custom field:", e.target.value);
-                        setNewCustomField(e.target.value);
-                      }}
+                      onChange={(e) => setNewCustomField(e.target.value)}
                       placeholder="Add custom requirement..."
-                      className="bg-background border border-border/70 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all w-40 md:w-auto text-foreground"
+                      className="bg-background border border-border/70 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all w-full sm:w-40 text-foreground"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -567,13 +626,8 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
                       }}
                     />
                     <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log("Add custom field button clicked");
-                        addCustomField();
-                      }}
-                      className="bg-primary text-white p-2 rounded-xl hover:bg-primary/90 transition-colors"
+                      onClick={addCustomField}
+                      className="bg-primary text-white p-2 rounded-xl hover:bg-primary/90 transition-colors flex-shrink-0"
                       title="Add custom field"
                     >
                       <Plus className="h-4 w-4" />
@@ -582,7 +636,7 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
                 </div>
                 
                 {customFields.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                     {customFields.map(field => (
                       <div key={field.id} className="space-y-2">
                         <label className="text-sm font-medium text-foreground block">
@@ -592,21 +646,13 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
                           <input
                             type="text"
                             value={field.value}
-                            onChange={(e) => {
-                              console.log(`Custom field ${field.id} changed:`, e.target.value);
-                              updateCustomFieldValue(field.id, e.target.value);
-                            }}
+                            onChange={(e) => updateCustomFieldValue(field.id, e.target.value)}
                             placeholder={`Specify ${field.label.toLowerCase()}`}
                             className="flex-1 bg-background border border-border/70 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all text-sm text-foreground"
                           />
                           <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              console.log("Remove custom field clicked:", field.id);
-                              removeCustomField(field.id);
-                            }}
-                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
+                            onClick={() => removeCustomField(field.id)}
+                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors flex-shrink-0"
                             title="Remove field"
                           >
                             <X className="h-4 w-4" />
@@ -620,19 +666,15 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
 
               {/* Generate Button */}
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("Generate button clicked");
-                  generatePrompt();
-                }}
+                onClick={generatePrompt}
                 disabled={isLoading || !theme.trim()}
                 className="w-full gradient-primary glow-primary hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg shine relative overflow-hidden group active:scale-95"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Generating with Gemini AI...</span>
+                    <span className="hidden sm:inline">Generating with Gemini AI...</span>
+                    <span className="sm:hidden">Generating...</span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-2">
@@ -646,7 +688,7 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
             {/* Generated Prompt */}
             {generatedPrompt && (
               <div className="glass rounded-2xl md:rounded-3xl p-4 md:p-6 space-y-4 md:space-y-6 animate-fade-in border-gradient">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h3 className="text-lg md:text-xl font-bold">Your Generated Prompt</h3>
                     <p className="text-sm text-muted-foreground">Powered by Google Gemini AI</p>
@@ -661,18 +703,13 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
                   </div>
                 </div>
                 
-                <div className="bg-background border border-border/70 rounded-xl md:rounded-2xl p-4 md:p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap overflow-x-auto text-foreground">
+                <div className="bg-background border border-border/70 rounded-xl md:rounded-2xl p-4 md:p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap overflow-x-auto text-foreground max-h-96 overflow-y-auto">
                   {generatedPrompt}
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log("Copy button clicked");
-                      copyToClipboard();
-                    }}
+                    onClick={copyToClipboard}
                     className="flex-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl py-3 px-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
                   >
                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -680,12 +717,7 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
                   </button>
                   
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log("Regenerate button clicked");
-                      regeneratePrompt();
-                    }}
+                    onClick={regeneratePrompt}
                     className="flex-1 bg-secondary/50 hover:bg-secondary border border-border rounded-xl py-3 px-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
                   >
                     <RefreshCw className="h-4 w-4" />
@@ -693,12 +725,7 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
                   </button>
                   
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log("Save button clicked");
-                      savePrompt();
-                    }}
+                    onClick={savePrompt}
                     className="flex-1 bg-secondary/50 hover:bg-secondary border border-border rounded-xl py-3 px-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
                   >
                     <Save className="h-4 w-4" />
@@ -711,16 +738,16 @@ if (colorPalette) fallbackPrompt += ` using ${colorPalette}`;
             {/* Tips Section */}
             <div className="glass rounded-2xl md:rounded-3xl p-4 md:p-6 border-gradient">
               <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-primary mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold mb-2">Pro Tips for Better Prompts</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Be specific about what you want - vague prompts produce vague results</li>
-                    <li>• Include technical specifications when applicable (resolution, format, etc.)</li>
+                    <li>• Be specific about what you want</li>
+                    <li>• Include technical specifications when applicable</li>
                     <li>• Mention what to avoid in your prompts</li>
-                    <li>• Use clear, concise language without unnecessary jargon</li>
+                    <li>• Use clear, concise language</li>
                     <li>• Include context about your target audience</li>
-                    <li className="text-accent">• Powered by Google Gemini 1.5 Flash (Free tier: 1500 requests/month)</li>
+                    <li className="text-accent">• Powered by Google Gemini</li>
                   </ul>
                 </div>
               </div>

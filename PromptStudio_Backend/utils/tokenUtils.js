@@ -38,10 +38,11 @@ const verifyAccessToken = (token) => {
     }
 };
 
-// Verify Refresh Token
+// tokenUtils.js - FIXED verifyRefreshToken
 const verifyRefreshToken = (token) => {
     try {
-        return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+        // Use JWT_SECRET instead of undefined REFRESH_TOKEN_SECRET
+        return jwt.verify(token, process.env.JWT_SECRET || process.env.JWT_REFRESH_SECRET);
     } catch (error) {
         return null;
     }

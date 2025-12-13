@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // Create axios instance
 const api = axios.create({
-    baseURL: 'https://promptstudio-vqbn.onrender.com/api',
+    baseURL: window.location.hostname.includes('localhost') 
+        ? 'http://localhost:5000/api'  // Local backend
+        : 'https://promptstudio-vqbn.onrender.com/api',
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
