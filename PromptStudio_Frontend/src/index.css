@@ -1,40 +1,71 @@
-/* App.css - Tailwind CSS v3 */
+/* App.css - Dark/Light Theme with Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* Light theme */
   :root {
-    /* Dark theme as default */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    
+    --primary: 270 80% 60%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    
+    --accent: 320 90% 60%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 270 80% 60%;
+    
+    --radius: 1rem;
+  }
+
+  /* Dark theme */
+  .dark {
     --background: 260 25% 6%;
     --foreground: 260 10% 95%;
-
+    
     --card: 260 25% 10%;
     --card-foreground: 260 10% 95%;
-
+    
     --popover: 260 25% 10%;
     --popover-foreground: 260 10% 95%;
-
+    
     --primary: 270 80% 60%;
     --primary-foreground: 0 0% 100%;
-
+    
     --secondary: 260 25% 14%;
     --secondary-foreground: 260 10% 95%;
-
+    
     --muted: 260 20% 16%;
     --muted-foreground: 260 10% 55%;
-
+    
     --accent: 320 90% 60%;
     --accent-foreground: 0 0% 100%;
-
+    
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
-
+    
     --border: 260 20% 18%;
     --input: 260 20% 14%;
     --ring: 270 80% 60%;
-
-    --radius: 1rem;
   }
 
   * {
@@ -42,11 +73,11 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
     font-family: 'Space Grotesk', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 
-  /* Custom scrollbar for dark theme */
+  /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
   }
@@ -65,93 +96,53 @@
 }
 
 @layer components {
+  /* Glass effect - adaptive to theme */
   .glass {
-    background: hsla(260 25% 10% / 0.6);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid hsla(270 50% 50% / 0.2);
+    @apply backdrop-blur-md transition-colors duration-300;
+    background: hsl(var(--background) / 0.8);
+    border: 1px solid hsl(var(--border) / 0.3);
   }
   
+  /* Glow effects */
   .glow-primary {
-    box-shadow: 0 0 30px hsla(270 80% 60% / 0.5), 0 0 60px hsla(270 80% 60% / 0.3);
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.3), 0 0 60px hsl(var(--primary) / 0.1);
   }
   
   .glow-accent {
-    box-shadow: 0 0 30px hsla(320 90% 60% / 0.5), 0 0 60px hsla(320 90% 60% / 0.3);
+    box-shadow: 0 0 30px hsl(var(--accent) / 0.3), 0 0 60px hsl(var(--accent) / 0.1);
   }
 
   .glow-soft {
-    box-shadow: 0 8px 32px hsla(270 80% 60% / 0.15);
+    box-shadow: 0 8px 32px hsl(var(--primary) / 0.1);
   }
   
+  /* Gradients - same for both themes */
   .gradient-primary {
     background: linear-gradient(135deg, hsl(270 80% 60%) 0%, hsl(320 90% 60%) 100%);
   }
   
   .gradient-hero {
-    background: radial-gradient(ellipse at top, hsl(270 40% 15%) 0%, hsl(260 25% 6%) 70%);
+    @apply dark:bg-gradient-to-b dark:from-purple-950/20 dark:to-background;
+    background: linear-gradient(135deg, hsl(210 40% 98%) 0%, hsl(0 0% 100%) 100%);
   }
   
   .gradient-card {
-    background: linear-gradient(135deg, hsl(260 25% 12% / 0.9) 0%, hsl(270 30% 14% / 0.9) 100%);
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 100%);
   }
 
-  .gradient-glow {
-    background: linear-gradient(135deg, hsl(270 80% 60% / 0.2) 0%, hsl(320 90% 60% / 0.2) 100%);
-  }
-
-  /* Text glow effect */
+  /* Text glow */
   .text-glow {
-    text-shadow: 0 0 20px hsla(270 80% 60% / 0.5), 0 0 40px hsla(270 80% 60% / 0.3);
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
 
-  .text-glow-accent {
-    text-shadow: 0 0 20px hsla(320 90% 60% / 0.5), 0 0 40px hsla(320 90% 60% / 0.3);
-  }
-
-  /* Particle background effect */
-  .bg-particles {
-    background-image: 
-      radial-gradient(circle at 20% 30%, hsla(270 80% 60% / 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, hsla(320 90% 60% / 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 40% 80%, hsla(270 80% 60% / 0.05) 0%, transparent 40%);
-  }
-
-  /* Hover lift effect */
+  /* Hover effects */
   .hover-lift {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
   .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 32px hsla(270 80% 60% / 0.15);
-  }
-
-  /* Shine effect on hover */
-  .shine {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .shine::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      hsla(0 0% 100% / 0.1) 50%,
-      transparent 100%
-    );
-    transform: rotate(30deg) translateX(-100%);
-    transition: transform 0.6s ease;
-  }
-
-  .shine:hover::after {
-    transform: rotate(30deg) translateX(100%);
+    transform: translateY(-2px);
+    @apply shadow-lg;
   }
 
   /* Animated border gradient */
@@ -179,119 +170,42 @@
   .border-gradient:hover::before {
     opacity: 1;
   }
+
+  /* Theme toggle button */
+  .theme-toggle {
+    @apply relative p-2 rounded-lg bg-secondary hover:bg-primary/10 transition-colors;
+  }
+
+  /* Dark mode specific */
+  .dark .gradient-hero {
+    background: radial-gradient(ellipse at top, hsl(270 40% 15%) 0%, hsl(260 25% 6%) 70%);
+  }
+
+  .dark .glass {
+    background: hsla(260 25% 10% / 0.6);
+    border: 1px solid hsla(270 50% 50% / 0.2);
+  }
 }
 
-/* Animation keyframes */
+/* Animation keyframes - same for both themes */
 @keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px hsla(270 80% 60% / 0.4);
-  }
-  50% {
-    box-shadow: 0 0 40px hsla(270 80% 60% / 0.6), 0 0 60px hsla(320 90% 60% / 0.3);
-  }
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(1deg);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(1deg); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
+/* Animation classes */
 .animate-pulse-glow {
   animation: pulse-glow 3s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--muted)) 0%,
-    hsl(var(--primary) / 0.3) 50%,
-    hsl(var(--muted)) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s linear infinite;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 4s ease infinite;
 }
 
 .animate-float {
@@ -302,27 +216,9 @@
   animation: fadeIn 0.5s ease-in-out forwards;
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
-}
-
-.animate-fade-in-down {
-  animation: fadeInDown 0.5s ease-out forwards;
-}
-
-.animate-fade-in-left {
-  animation: fadeInLeft 0.5s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
-}
-
 /* Dropdown styles */
 select {
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239C27B0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
@@ -330,36 +226,25 @@ select {
   padding-right: 2.5rem !important;
 }
 
-select:focus {
-  outline: none;
-  ring: 2px;
+.dark select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
-/* Remove default arrow in IE */
-select::-ms-expand {
-  display: none;
+/* Add to your existing App.css file, possibly in the dark mode section */
+
+.dark .logo-image {
+    /* For transparent PNG logos with dark elements */
+    filter: brightness(0) invert(1) hue-rotate(180deg);
 }
 
-/* Ensure dropdowns are above other elements */
-select {
-  z-index: 10;
-  position: relative;
+/* Alternative if you want more control */
+.dark .logo-container img {
+    filter: brightness(1.2) contrast(1.1) saturate(1.1);
 }
 
-/* Dropdown options styling */
-select option {
-  background-color: hsl(var(--card));
-  color: hsl(var(--foreground));
-  padding: 0.5rem;
-}
-
-select option:hover,
-select option:focus,
-select option:active {
-  background-color: hsl(var(--primary) / 0.2);
-}
-
-/* Make sure dropdowns are visible and clickable */
-select {
-  cursor: pointer;
+/* If logo is SVG */
+.dark .logo-image path,
+.dark .logo-image circle,
+.dark .logo-image rect {
+    fill: #ffffff !important;
 }
