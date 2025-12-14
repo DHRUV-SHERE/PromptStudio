@@ -20,7 +20,7 @@
     <!-- Use only what you actually have in /public folder -->
     
     <!-- Option A: Use your Logo.png as favicon (if it's in public folder) -->
-    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="icon" type="image/png" href="/Logo.png">
     
     <!-- Option B: Use Vite's default favicon (always exists) -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg">
@@ -126,13 +126,13 @@
         // Check which favicon loaded
         const favicon = new Image();
         favicon.onload = function() {
-          console.log('✅ Favicon loaded: /logo.png');
+          console.log('✅ Favicon loaded: /Logo.png');
         };
         favicon.onerror = function() {
-          console.log('⚠️ /logo.png not found, trying /vite.svg');
+          console.log('⚠️ /Logo.png not found, trying /vite.svg');
           // Vite's default favicon always exists
         };
-        favicon.src = '/logo.png';
+        favicon.src = '/Logo.png';
         
         // Performance check
         if ('performance' in window) {
