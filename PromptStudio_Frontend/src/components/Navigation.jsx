@@ -27,17 +27,17 @@ const Navigation = () => {
 
   // Navigation items based on auth state
   const publicLinks = [
-    { to: "/", label: "Home", icon: "🏠" },
-    { to: "/about", label: "About", icon: "📖" },
-    { to: "/contact", label: "Contact", icon: "📞" },
+    { to: "/", label: "Home" },
+    { to: "/about", label: "About" },
+    { to: "/contact", label: "Contact"},
   ];
 
   const authLinks = [
-    { to: "/", label: "Home", icon: "🏠" },
-    { to: "/about", label: "About", icon: "📖" },
-    { to: "/contact", label: "Contact", icon: "📞" },
-    { to: "/generator", label: "Generator", icon: "✨" },
-    { to: "/history", label: "History", icon: "📊" },
+    { to: "/", label: "Home"},
+    { to: "/about", label: "About"},
+    { to: "/contact", label: "Contact"},
+    { to: "/generator", label: "Generator"},
+    { to: "/history", label: "History"},
   ];
 
   const navLinks = isAuthenticated ? authLinks : publicLinks;
@@ -105,7 +105,6 @@ const Navigation = () => {
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                   }`}
                 >
-                  <span className="text-sm">{link.icon}</span>
                   <span className="text-sm font-medium">{link.label}</span>
                   {isActive(link.to) && (
                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary animate-pulse-glow" />
@@ -281,7 +280,6 @@ const Navigation = () => {
                         : "text-muted-foreground hover:bg-secondary/50"
                     }`}
                   >
-                    <span className="text-base">{link.icon}</span>
                     <span className="font-medium">{link.label}</span>
                     {isActive(link.to) && (
                       <span className="ml-auto w-2 h-2 rounded-full bg-primary animate-pulse" />
