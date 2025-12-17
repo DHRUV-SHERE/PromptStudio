@@ -1,6 +1,4 @@
 const aiService = require('../services/aiService');
-const Prompt = require('../models/Prompt'); // We'll create this model
-const User = require('../models/UserModel');
 
 // @desc    Generate AI prompt
 // @route   POST /api/prompts/generate
@@ -18,26 +16,6 @@ const generatePrompt = async (req, res) => {
             });
         }
         
-        // Check user's prompt limit (optional)
-        const user = await User.findById(userId);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        // Count today's prompts
-        const todaysPrompts = await Prompt.countDocuments({
-            user: userId,
-            createdAt: { $gte: today }
-        });
-        
-        // Free tier limit: 10 prompts per day
-        const MAX_DAILY_PROMPTS = 10;
-        if (todaysPrompts >= MAX_DAILY_PROMPTS && user.role !== 'admin') {
-            return res.status(429).json({
-                success: false,
-                message: `Daily limit reached (${MAX_DAILY_PROMPTS} prompts). Upgrade for unlimited access.`
-            });
-        }
-        
         // Generate prompt using AI
         const aiResult = await aiService.generatePrompt(
             input,
@@ -45,42 +23,18 @@ const generatePrompt = async (req, res) => {
             options || {}
         );
         
-        if (!aiResult.success) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to generate prompt'
-            });
-        }
-        
-        // Save to database
-        const prompt = await Prompt.create({
-            user: userId,
-            input,
-            generatedPrompt: aiResult.prompt,
-            category: category || 'creative',
-            model: aiResult.model,
-            tokens: aiResult.tokens,
-            options: options || {}
-        });
-        
-        // Update user's prompt count
-        await User.findByIdAndUpdate(userId, {
-            $inc: { promptCount: 1 },
-            lastPromptAt: new Date()
-        });
-        
         res.status(200).json({
             success: true,
             message: 'Prompt generated successfully',
             data: {
-                id: prompt._id,
-                input: prompt.input,
-                generatedPrompt: prompt.generatedPrompt,
-                category: prompt.category,
-                model: prompt.model,
-                tokens: prompt.tokens,
-                createdAt: prompt.createdAt,
-                dailyUsage: `${todaysPrompts + 1}/${MAX_DAILY_PROMPTS}`
+                input,
+                generatedPrompt: aiResult.prompt,
+                category: category || 'creative',
+                model: aiResult.model,
+                provider: aiResult.provider,
+                tokens: aiResult.tokens,
+                online: aiResult.online,
+                timestamp: aiResult.timestamp
             }
         });
         
@@ -109,7 +63,6 @@ const generatePrompt = async (req, res) => {
 const batchGeneratePrompts = async (req, res) => {
     try {
         const { inputs, category } = req.body;
-        const userId = req.userId;
         
         if (!inputs || !Array.isArray(inputs) || inputs.length === 0) {
             return res.status(400).json({
@@ -125,30 +78,11 @@ const batchGeneratePrompts = async (req, res) => {
         // Generate prompts
         const result = await aiService.batchGeneratePrompts(batchInputs, category || 'creative');
         
-        // Save to database
-        const savedPrompts = [];
-        for (let i = 0; i < result.results.length; i++) {
-            const prompt = await Prompt.create({
-                user: userId,
-                input: batchInputs[i],
-                generatedPrompt: result.results[i].prompt,
-                category: category || 'creative',
-                model: result.results[i].model,
-                tokens: result.results[i].tokens
-            });
-            savedPrompts.push(prompt);
-        }
-        
         res.status(200).json({
             success: result.success,
             message: `Generated ${result.successful} out of ${result.total} prompts`,
             data: {
-                prompts: savedPrompts.map(p => ({
-                    id: p._id,
-                    input: p.input,
-                    generatedPrompt: p.generatedPrompt,
-                    category: p.category
-                })),
+                prompts: result.results,
                 batchInfo: {
                     total: result.total,
                     successful: result.successful,
@@ -173,60 +107,31 @@ const batchGeneratePrompts = async (req, res) => {
 // @access  Private
 const enhancePrompt = async (req, res) => {
     try {
-        const { promptId, enhancementType } = req.body;
-        const userId = req.userId;
+        const { prompt, enhancementType } = req.body;
         
-        // Find the original prompt
-        const originalPrompt = await Prompt.findOne({
-            _id: promptId,
-            user: userId
-        });
-        
-        if (!originalPrompt) {
-            return res.status(404).json({
+        if (!prompt) {
+            return res.status(400).json({
                 success: false,
-                message: 'Prompt not found'
+                message: 'Please provide a prompt to enhance'
             });
         }
         
         // Enhance the prompt
         const enhancedResult = await aiService.enhancePrompt(
-            originalPrompt.generatedPrompt,
+            prompt,
             enhancementType || 'detailed'
         );
-        
-        if (!enhancedResult.success) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to enhance prompt'
-            });
-        }
-        
-        // Save enhanced version
-        const enhancedPrompt = await Prompt.create({
-            user: userId,
-            input: originalPrompt.input,
-            generatedPrompt: enhancedResult.enhanced,
-            category: originalPrompt.category,
-            model: enhancedResult.model,
-            tokens: 0, // Can't track for enhancement
-            isEnhanced: true,
-            originalPrompt: originalPrompt._id,
-            enhancementType: enhancementType || 'detailed'
-        });
         
         res.status(200).json({
             success: true,
             message: 'Prompt enhanced successfully',
             data: {
-                id: enhancedPrompt._id,
-                original: originalPrompt.generatedPrompt,
-                enhanced: enhancedPrompt.generatedPrompt,
-                enhancementType: enhancedPrompt.enhancementType,
-                improvement: Math.round(
-                    (enhancedPrompt.generatedPrompt.length - originalPrompt.generatedPrompt.length) / 
-                    originalPrompt.generatedPrompt.length * 100
-                ) + '% longer'
+                original: enhancedResult.original,
+                enhanced: enhancedResult.enhanced,
+                enhancementType: enhancedResult.enhancementType,
+                improvement: enhancedResult.improvement,
+                provider: enhancedResult.provider,
+                timestamp: enhancedResult.timestamp
             }
         });
         
@@ -245,53 +150,23 @@ const enhancePrompt = async (req, res) => {
 // @access  Private
 const getPromptHistory = async (req, res) => {
     try {
-        const userId = req.userId;
-        const { page = 1, limit = 20, category, sort = '-createdAt' } = req.query;
-        
-        const query = { user: userId };
-        
-        if (category && category !== 'all') {
-            query.category = category;
-        }
-        
-        const prompts = await Prompt.find(query)
-            .sort(sort)
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .select('input generatedPrompt category model tokens createdAt isEnhanced');
-        
-        const total = await Prompt.countDocuments(query);
-        
-        // Get usage stats
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const todaysCount = await Prompt.countDocuments({
-            user: userId,
-            createdAt: { $gte: today }
-        });
-        
-        const totalTokens = await Prompt.aggregate([
-            { $match: { user: userId } },
-            { $group: { _id: null, total: { $sum: '$tokens' } } }
-        ]);
-        
+        // For now, return empty array - implement database later
         res.status(200).json({
             success: true,
             data: {
-                prompts,
+                prompts: [],
                 pagination: {
-                    total,
-                    pages: Math.ceil(total / limit),
-                    page: parseInt(page),
-                    limit: parseInt(limit)
+                    total: 0,
+                    pages: 0,
+                    page: 1,
+                    limit: 20
                 },
                 stats: {
-                    totalPrompts: total,
-                    todaysPrompts: todaysCount,
-                    totalTokens: totalTokens[0]?.total || 0,
+                    totalPrompts: 0,
+                    todaysPrompts: 0,
+                    totalTokens: 0,
                     dailyLimit: 10,
-                    remainingToday: Math.max(0, 10 - todaysCount)
+                    remainingToday: 10
                 }
             }
         });
@@ -373,20 +248,8 @@ const getCategories = (req, res) => {
 const deletePrompt = async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = req.userId;
         
-        const prompt = await Prompt.findOneAndDelete({
-            _id: id,
-            user: userId
-        });
-        
-        if (!prompt) {
-            return res.status(404).json({
-                success: false,
-                message: 'Prompt not found'
-            });
-        }
-        
+        // For now, just return success - implement database later
         res.status(200).json({
             success: true,
             message: 'Prompt deleted successfully'
@@ -407,32 +270,19 @@ const deletePrompt = async (req, res) => {
 const getPrompt = async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = req.userId;
         
-        const prompt = await Prompt.findOne({
-            _id: id,
-            user: userId
-        }).select('-__v');
-        
-        if (!prompt) {
-            return res.status(404).json({
-                success: false,
-                message: 'Prompt not found'
-            });
-        }
-        
-        // If it's an enhanced prompt, get the original
-        let originalPrompt = null;
-        if (prompt.originalPrompt) {
-            originalPrompt = await Prompt.findById(prompt.originalPrompt)
-                .select('input generatedPrompt createdAt');
-        }
-        
+        // For now, return placeholder - implement database later
         res.status(200).json({
             success: true,
             data: {
-                prompt,
-                original: originalPrompt
+                prompt: {
+                    id: id,
+                    input: "Sample input",
+                    generatedPrompt: "This is a sample generated prompt",
+                    category: "creative",
+                    model: "ai-enhanced-offline",
+                    createdAt: new Date().toISOString()
+                }
             }
         });
         

@@ -71,13 +71,7 @@ app.get('/api', (req, res) => {
     });
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/contact', contactRoutes);
-app.use('/api/prompts', promptRoutes);
-
-
-// In your server.js, add a test route BEFORE authentication:
+// Test AI endpoint
 app.post('/api/test-ai', async (req, res) => {
     try {
         const aiService = require('./services/aiService');
@@ -95,7 +89,6 @@ app.post('/api/test-ai', async (req, res) => {
         });
     }
 });
-
 
 // Debug endpoint to test authentication
 app.get('/api/debug/auth-test', (req, res) => {
@@ -136,6 +129,11 @@ app.get('/api/test', (req, res) => {
     });
 });
 
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/prompts', promptRoutes);
+
 // Root route
 app.get('/', (req, res) => {
     res.redirect('/api');
@@ -166,7 +164,7 @@ if (process.env.NODE_ENV === 'production') {
     }
 }
 
-// 404 handler - FIXED: No wildcard routes
+// 404 handler
 app.use((req, res) => {
     // Check if it's an API route
     if (req.path.startsWith('/api/')) {
