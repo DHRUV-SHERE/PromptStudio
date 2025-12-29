@@ -382,7 +382,7 @@ Generate a business prompt that includes:
         console.log(`📝 Generating prompt for: ${input.substring(0, 50)}...`);
 
         // Try providers in order: Gemini → OpenAI → Offline
-        const providerOrder = ['gemini', 'openai'];
+        const providerOrder = ['openai','gemini'];
 
         for (const provider of providerOrder) {
             if (this.providers.available.includes(provider)) {
