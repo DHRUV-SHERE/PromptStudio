@@ -335,25 +335,7 @@ Generate a business prompt that includes:
             console.log(`   Using model: ${modelName}`);
             console.log(`   Prompt length: ${finalPrompt.length} chars`);
 
-            const result = await this.providers.geminiModel.generateContent({
-                contents: [{ role: 'user', parts: [{ text: finalPrompt }] }],
-                generationConfig: {
-                    temperature: 0.9,
-                    topP: 0.8,
-                    topK: 40,
-                    maxOutputTokens: 2048,
-                },
-                safetySettings: [
-                    {
-                        category: 'HARM_CATEGORY_HARASSMENT',
-                        threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-                    },
-                    {
-                        category: 'HARM_CATEGORY_HATE_SPEECH',
-                        threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-                    }
-                ]
-            });
+           const result = await this.providers.geminiModel.generateContent(finalPrompt);
 
             const response = await result.response;
             const generatedText =
