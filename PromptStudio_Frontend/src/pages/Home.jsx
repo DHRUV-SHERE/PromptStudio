@@ -144,66 +144,112 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How It Works - REMOVED OPACITY-0 */}
+      {/* How It Works */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-gray-900 dark:text-white">How It </span>
-            <span className="text-purple-600 dark:text-pink-500">Works</span>
+            <span className="text-foreground">How to Use </span>
+            <span className="text-primary dark:text-accent">PromptStudio</span>
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Three simple steps to perfect prompts
+          <p className="text-lg text-muted-foreground">
+            Generate perfect AI prompts in 3 simple steps - no technical knowledge required!
           </p>
         </div>
 
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
-          {[
-            { step: "1", title: "Choose Category", desc: "Select from image, website, video, coding, data, or marketing prompts.", icon: Layers },
-            { step: "2", title: "Customize Options", desc: "Fine-tune your prompt with style, tone, theme, and specific details.", icon: Sparkles },
-            { step: "3", title: "Generate & Use", desc: "Get your optimized prompt instantly. Copy and use with any AI tool.", icon: Zap },
-          ].map((item, i) => (
-            <div 
-              key={i} 
-              className="relative text-center p-8 glass rounded-2xl border-gradient hover-lift"
-            >
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-white glow-primary">
-                {item.step}
+        <div className="max-w-6xl mx-auto">
+          {/* Step by step guide */}
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            {[
+              { 
+                step: "1", 
+                title: "Choose What You Want to Create", 
+                desc: "Pick from 6 categories: Images, Content Writing, Code, Business, Videos, or Social Media. Each category is designed for specific AI tools.", 
+                icon: Layers,
+                example: "Example: Select 'Image Generation' for Midjourney prompts"
+              },
+              { 
+                step: "2", 
+                title: "Describe Your Idea", 
+                desc: "Simply write what you want in plain English. Be specific! Add details like style, colors, or target audience using our simple dropdown menus.", 
+                icon: Sparkles,
+                example: "Example: 'A sunset over mountains in watercolor style'"
+              },
+              { 
+                step: "3", 
+                title: "Copy & Use Anywhere", 
+                desc: "Get your optimized prompt instantly. Copy it and paste directly into ChatGPT, Claude, Midjourney, or any AI tool. It's ready to use!", 
+                icon: Zap,
+                example: "Works with: ChatGPT, Claude, Gemini, Midjourney, DALL-E"
+              },
+            ].map((item, i) => (
+              <div 
+                key={i} 
+                className="relative text-center p-8 glass rounded-2xl border-gradient hover-lift"
+              >
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-lg font-bold text-white glow-primary">
+                  {item.step}
+                </div>
+                <div className="w-16 h-16 mx-auto mb-6 mt-4 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <item.icon className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3 text-foreground">{item.title}</h3>
+                <p className="text-muted-foreground mb-4">{item.desc}</p>
+                <div className="text-xs text-primary bg-primary/10 rounded-lg p-2">
+                  {item.example}
+                </div>
               </div>
-              <div className="w-16 h-16 mx-auto mb-6 mt-4 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                <item.icon className="h-8 w-8 text-purple-600 dark:text-pink-500" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{item.title}</h3>
-              <p className="text-gray-600 dark:text-gray-400">{item.desc}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        <div className="text-center mt-12">
-          <Link to={user ? "/generator" : "/auth"}>
-            <button className="gradient-primary glow-primary hover:scale-105 transition-all duration-300 shine rounded-lg px-6 py-3 flex items-center mx-auto">
-              <span className="text-white">{user ? "Try It Now" : "Get Started"}</span>
-              <ArrowRight className="ml-2 h-5 w-5 text-white" />
-            </button>
-          </Link>
+          {/* Visual example */}
+          <div className="glass rounded-3xl p-8 border-gradient">
+            <h3 className="text-2xl font-bold text-center mb-8 text-foreground">See It In Action</h3>
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h4 className="text-lg font-semibold mb-4 text-primary">What You Type:</h4>
+                <div className="bg-background border border-border/70 rounded-xl p-4 mb-4">
+                  <p className="text-sm text-muted-foreground mb-2">Category: Image Generation</p>
+                  <p className="text-foreground">"A cozy coffee shop interior with warm lighting"</p>
+                  <p className="text-sm text-muted-foreground mt-2">Style: Realistic • Colors: Warm Tones</p>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold mb-4 text-green-600 dark:text-green-400">What You Get:</h4>
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+                  <p className="text-sm text-green-700 dark:text-green-300 font-mono leading-relaxed">
+                    "Create a photorealistic image of a cozy coffee shop interior with warm, ambient lighting. Include comfortable seating, wooden furniture, soft warm color palette with browns and golds, steam rising from coffee cups, and a welcoming atmosphere. High resolution, professional photography style."
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="text-center mt-6">
+              <p className="text-sm text-muted-foreground mb-4">✨ Perfect for pasting into Midjourney, DALL-E, or any image AI!</p>
+              <Link to="/generator">
+                <button className="gradient-primary text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-all">
+                  Try It Yourself →
+                </button>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Why Choose Us - REMOVED OPACITY-0 */}
+      {/* Why Choose Us */}
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-6xl mx-auto glass rounded-3xl p-8 md:p-12 border-gradient">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl md:text-5xl font-bold mb-8">
-                <span className="text-gray-900 dark:text-white">Why Choose </span>
-                <span className="text-purple-600 dark:text-pink-500">PromptStudio?</span>
+                <span className="text-foreground">Why Choose </span>
+                <span className="text-primary dark:text-accent">PromptStudio?</span>
               </h2>
               <div className="space-y-5">
                 {[
-                  "Optimized prompts for better AI outputs",
-                  "Save and access your prompt history",
-                  "Multiple categories for any use case",
-                  "Completely free to use",
-                  "No AI experience required",
+                  "No technical knowledge required - anyone can use it",
+                  "Works with ALL AI tools (ChatGPT, Claude, Midjourney, etc.)",
+                  "Get better results from AI with optimized prompts",
+                  "Save time - no more struggling with prompt writing",
+                  "Completely free to use forever",
                 ].map((feature, i) => (
                   <div 
                     key={i} 
@@ -212,25 +258,25 @@ const Index = () => {
                     <div className="w-6 h-6 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
                       <CheckCircle2 className="h-4 w-4 text-white" />
                     </div>
-                    <span className="text-lg text-gray-900 dark:text-white">{feature}</span>
+                    <span className="text-lg text-foreground">{feature}</span>
                   </div>
                 ))}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               {[
-                { icon: Users, title: "Easy to Use", desc: "No learning curve", color: "primary" },
-                { icon: Layers, title: "Versatile", desc: "6+ categories", color: "accent" },
-                { icon: Zap, title: "Instant", desc: "Generate in seconds", color: "primary" },
-                { icon: Sparkles, title: "Quality", desc: "Optimized outputs", color: "accent" },
+                { icon: Users, title: "Beginner Friendly", desc: "No AI experience needed", color: "primary" },
+                { icon: Layers, title: "6 Categories", desc: "Images, Code, Content & more", color: "accent" },
+                { icon: Zap, title: "Instant Results", desc: "Generate in 3 seconds", color: "primary" },
+                { icon: Sparkles, title: "Better Outputs", desc: "Optimized for quality", color: "accent" },
               ].map((item, i) => (
                 <div 
                   key={i} 
-                  className="p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl text-center hover-lift"
+                  className="p-6 bg-secondary/30 rounded-2xl text-center hover-lift"
                 >
-                  <item.icon className={`h-10 w-10 mx-auto mb-3 ${item.color === 'primary' ? 'text-purple-600 dark:text-purple-400' : 'text-pink-600 dark:text-pink-400'}`} />
-                  <div className="font-semibold text-gray-900 dark:text-white">{item.title}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{item.desc}</div>
+                  <item.icon className={`h-10 w-10 mx-auto mb-3 ${item.color === 'primary' ? 'text-primary' : 'text-accent'}`} />
+                  <div className="font-semibold text-foreground">{item.title}</div>
+                  <div className="text-sm text-muted-foreground">{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -238,17 +284,17 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section - REMOVED OPACITY-0 */}
+      {/* CTA Section */}
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="text-gray-900 dark:text-white">Ready to Create </span>
-            <span className="text-purple-600 dark:text-pink-500">Perfect Prompts?</span>
+            <span className="text-foreground">Ready to Create </span>
+            <span className="text-primary dark:text-accent">Perfect Prompts?</span>
           </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-600 dark:text-gray-400">
+          <p className="text-xl mb-8 max-w-2xl mx-auto text-muted-foreground">
             Join thousands of creators using PromptStudio to generate optimized AI prompts. It's free and takes just seconds.
           </p>
-          <Link to={user ? "/generator" : "/auth"}>
+          <Link to={user ? "/generator" : "/generator"}>
             <button className="gradient-primary glow-primary hover:scale-105 transition-all duration-300 text-lg h-14 px-10 font-semibold shine rounded-lg flex items-center mx-auto">
               <Sparkles className="mr-2 h-5 w-5 text-white" />
               <span className="text-white">{user ? "Go to Generator" : "Start For Free"}</span>

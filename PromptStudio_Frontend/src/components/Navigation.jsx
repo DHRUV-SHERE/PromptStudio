@@ -1,13 +1,11 @@
-import { Sparkles, History, LogIn, LogOut, User, Menu, X, Moon, Sun } from "lucide-react";
+import { Sparkles, History, LogIn, LogOut, User, Menu, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Resource from "../Resource";
 import { useAuth } from "../context/authContext";
-import { useTheme } from "../context/ThemeContext";
 
 const Navigation = () => {
   const { user, logout, isAuthenticated } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -114,24 +112,8 @@ const Navigation = () => {
             ))}
           </div>
 
-          {/* Right Section - Theme Toggle + Auth */}
+          {/* Right Section - Auth Only */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-xl hover:bg-secondary/50 transition-colors duration-300 relative group"
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            >
-              {theme === 'light' ? (
-                <Moon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              ) : (
-                <Sun className="h-5 w-5 text-muted-foreground group-hover:text-accent transition-colors" />
-              )}
-              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-background text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                {theme === 'light' ? 'Dark mode' : 'Light mode'}
-              </span>
-            </button>
 
             {isAuthenticated ? (
               <div className="relative" onMouseLeave={() => setDropdownOpen(false)}>
@@ -287,28 +269,6 @@ const Navigation = () => {
                   </button>
                 </Link>
               ))}
-              
-              {/* Theme Toggle in Mobile Menu */}
-              <div className="px-4 py-3 border-t border-border/50 mt-2">
-                <button
-                  onClick={toggleTheme}
-                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-secondary/50 transition-colors flex items-center gap-3"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-                    {theme === 'light' ? (
-                      <Moon className="h-4 w-4" />
-                    ) : (
-                      <Sun className="h-4 w-4" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">Theme</p>
-                    <p className="text-xs text-muted-foreground">
-                      Switch to {theme === 'light' ? 'dark' : 'light'} mode
-                    </p>
-                  </div>
-                </button>
-              </div>
               
               {/* Mobile Auth Buttons */}
               {!isAuthenticated && (

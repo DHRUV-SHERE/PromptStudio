@@ -324,8 +324,6 @@ const logoutUser = async (req, res) => {
         }
 
         // In logoutUser:
-        clearTokensCookies(req, res);
-
         res.status(200).json({
             success: true,
             message: 'Logged out successfully'
@@ -379,7 +377,6 @@ const logoutAllDevices = async (req, res) => {
         });
 
         // In logoutAllDevices:
-        clearTokensCookies(req, res);
         res.status(200).json({
             success: true,
             message: 'Logged out from all devices successfully'

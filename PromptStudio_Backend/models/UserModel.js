@@ -50,6 +50,16 @@ const UserSchema = new mongoose.Schema({
         type: Number,
         default: 10 // Daily limit for free tier
     },
+    dailyUsage: {
+        date: {
+            type: String, // Format: YYYY-MM-DD
+            default: () => new Date().toISOString().split('T')[0]
+        },
+        count: {
+            type: Number,
+            default: 0
+        }
+    },
     isPremium: {
         type: Boolean,
         default: false
@@ -105,6 +115,36 @@ UserSchema.methods.toJSON = function() {
     delete user.password;
     delete user.refreshTokens;
     return user;
+};
+
+// Check daily usage limit
+UserSchema.methods.checkDailyLimit = function() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Reset count if it's a new day
+    if (this.dailyUsage.date !== today) {
+        this.dailyUsage.date = today;
+        this.dailyUsage.count = 0;
+    }
+    
+    return this.dailyUsage.count < this.promptLimit;
+};
+
+// Increment daily usage
+UserSchema.methods.incrementDailyUsage = function() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Reset count if it's a new day
+    if (this.dailyUsage.date !== today) {
+        this.dailyUsage.date = today;
+        this.dailyUsage.count = 0;
+    }
+    
+    this.dailyUsage.count += 1;
+    this.promptCount += 1;
+    this.lastPromptAt = new Date();
+    
+    return this.save();
 };
 
 module.exports = mongoose.model('User', UserSchema);

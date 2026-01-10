@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Sparkles, Mail, Lock, ArrowLeft, Zap, Shield, Rocket, CheckCircle, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Sparkles, Mail, Lock, ArrowLeft, Zap, Shield, Rocket, CheckCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/authContext';
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formErrors, setFormErrors] = useState({});
@@ -218,7 +217,7 @@ const Login = () => {
                         formErrors.password ? 'text-red-500' : 'text-primary'
                       } group-hover:scale-110`} />
                       <input
-                        type={showPassword ? "text" : "password"}
+                        type="password"
                         value={password}
                         onChange={(e) => {
                           setPassword(e.target.value);
@@ -226,21 +225,13 @@ const Login = () => {
                         }}
                         onKeyPress={handleKeyPress}
                         placeholder="••••••••"
-                        className={`w-full pl-10 sm:pl-12 pr-12 py-3 rounded-xl transition-all duration-300 ${
+                        className={`w-full pl-10 sm:pl-12 pr-4 py-3 rounded-xl transition-all duration-300 ${
                           formErrors.password 
                             ? 'border-red-500/50 bg-red-500/5 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' 
                             : 'glass border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20'
                         } focus:outline-none`}
                         disabled={isLoading}
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 active:scale-95"
-                        tabIndex={-1}
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
                     </div>
                     {formErrors.password && (
                       <div className="flex items-center gap-1 text-red-500 text-xs sm:text-sm">

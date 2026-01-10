@@ -84,7 +84,9 @@ api.interceptors.response.use(
                 
                 // Use a separate axios instance for refresh to avoid interceptors
                 const refreshAxios = axios.create({
-                    baseURL: 'https://promptstudio-vqbn.onrender.com/api',
+                    baseURL: window.location.hostname.includes('localhost') 
+                        ? 'http://localhost:5000/api'  // Local backend
+                        : 'https://promptstudio-vqbn.onrender.com/api',
                     withCredentials: true,
                     headers: {
                         'Content-Type': 'application/json'
@@ -201,6 +203,11 @@ export const authAPI = {
 
     savePrompt: async (promptData) => {
         const response = await api.post('/prompts/save', promptData);
+        return response.data;
+    },
+
+    getDailyUsage: async () => {
+        const response = await api.get('/prompts/usage');
         return response.data;
     }
 };

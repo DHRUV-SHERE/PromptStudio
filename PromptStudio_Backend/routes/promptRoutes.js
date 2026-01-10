@@ -7,7 +7,8 @@ const {
     getPromptHistory,
     getCategories,
     deletePrompt,
-    getPrompt
+    getPrompt,
+    getDailyUsage
 } = require('../controller/promptController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -19,6 +20,7 @@ router.post('/generate', protect, generatePrompt);
 router.post('/batch-generate', protect, batchGeneratePrompts);
 router.post('/enhance', protect, enhancePrompt);
 router.get('/history', protect, getPromptHistory);
+router.get('/usage', protect, getDailyUsage);
 router.get('/:id', protect, getPrompt);
 router.delete('/:id', protect, deletePrompt);
 

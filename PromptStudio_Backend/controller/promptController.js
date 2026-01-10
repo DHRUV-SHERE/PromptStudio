@@ -1,40 +1,90 @@
 const aiService = require('../services/aiService');
+const Prompt = require('../models/Prompt');
+const User = require('../models/UserModel');
 
 // @desc    Generate AI prompt
 // @route   POST /api/prompts/generate
 // @access  Private
 const generatePrompt = async (req, res) => {
     try {
-        const { input, category, options } = req.body;
+        const { category, description, additionalDetails, customDetails } = req.body;
         const userId = req.userId;
         
         // Validation
-        if (!input || input.trim().length < 3) {
+        if (!category || !description) {
             return res.status(400).json({
                 success: false,
-                message: 'Please provide meaningful input (at least 3 characters)'
+                message: 'Please provide category and description'
             });
         }
         
-        // Generate prompt using AI
-        const aiResult = await aiService.generatePrompt(
-            input,
-            category || 'creative',
-            options || {}
-        );
+        if (description.trim().length < 5) {
+            return res.status(400).json({
+                success: false,
+                message: 'Description must be at least 5 characters'
+            });
+        }
+        
+        // Check daily usage limit
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        
+        if (!user.checkDailyLimit()) {
+            return res.status(429).json({
+                success: false,
+                message: 'Daily prompt limit reached. Try again tomorrow!',
+                dailyUsage: `${user.dailyUsage.count}/${user.promptLimit}`
+            });
+        }
+        
+        // Build structured input for AI
+        const structuredInput = {
+            category,
+            description,
+            additionalDetails: additionalDetails || [],
+            customDetails: customDetails || []
+        };
+        
+        // Generate prompt using AI with embedded template
+        const aiResult = await aiService.generateStructuredPrompt(structuredInput);
+        
+        // Save prompt to database
+        const promptData = {
+            user: userId,
+            input: description,
+            generatedPrompt: aiResult.prompt,
+            category: category,
+            model: aiResult.model,
+            tokens: aiResult.tokens || 0,
+            options: {
+                additionalDetails: additionalDetails || [],
+                customDetails: customDetails || []
+            }
+        };
+        
+        const savedPrompt = await Prompt.create(promptData);
+        
+        // Increment user's daily usage
+        await user.incrementDailyUsage();
         
         res.status(200).json({
             success: true,
             message: 'Prompt generated successfully',
             data: {
-                input,
+                id: savedPrompt._id,
                 generatedPrompt: aiResult.prompt,
-                category: category || 'creative',
+                category: category,
                 model: aiResult.model,
                 provider: aiResult.provider,
                 tokens: aiResult.tokens,
                 online: aiResult.online,
-                timestamp: aiResult.timestamp
+                timestamp: aiResult.timestamp,
+                dailyUsage: `${user.dailyUsage.count + 1}/${user.promptLimit}`
             }
         });
         
@@ -150,23 +200,59 @@ const enhancePrompt = async (req, res) => {
 // @access  Private
 const getPromptHistory = async (req, res) => {
     try {
-        // For now, return empty array - implement database later
+        const userId = req.userId;
+        const { page = 1, limit = 20, category, search } = req.query;
+        
+        // Build query
+        const query = { user: userId };
+        
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+        
+        if (search) {
+            query.$or = [
+                { input: { $regex: search, $options: 'i' } },
+                { generatedPrompt: { $regex: search, $options: 'i' } }
+            ];
+        }
+        
+        // Calculate pagination
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        // Get prompts with pagination
+        const prompts = await Prompt.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit))
+            .lean();
+        
+        // Get total count for pagination
+        const total = await Prompt.countDocuments(query);
+        
+        // Get user for stats
+        const user = await User.findById(userId);
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Calculate today's prompts
+        const todaysPrompts = user.dailyUsage.date === today ? user.dailyUsage.count : 0;
+        
         res.status(200).json({
             success: true,
             data: {
-                prompts: [],
+                prompts: prompts,
                 pagination: {
-                    total: 0,
-                    pages: 0,
-                    page: 1,
-                    limit: 20
+                    total: total,
+                    pages: Math.ceil(total / parseInt(limit)),
+                    page: parseInt(page),
+                    limit: parseInt(limit)
                 },
                 stats: {
-                    totalPrompts: 0,
-                    todaysPrompts: 0,
-                    totalTokens: 0,
-                    dailyLimit: 10,
-                    remainingToday: 10
+                    totalPrompts: user.promptCount,
+                    todaysPrompts: todaysPrompts,
+                    totalTokens: 0, // Can be calculated if needed
+                    dailyLimit: user.promptLimit,
+                    remainingToday: Math.max(0, user.promptLimit - todaysPrompts)
                 }
             }
         });
@@ -248,8 +334,21 @@ const getCategories = (req, res) => {
 const deletePrompt = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.userId;
         
-        // For now, just return success - implement database later
+        // Find and delete the prompt (only if it belongs to the user)
+        const deletedPrompt = await Prompt.findOneAndDelete({
+            _id: id,
+            user: userId
+        });
+        
+        if (!deletedPrompt) {
+            return res.status(404).json({
+                success: false,
+                message: 'Prompt not found or unauthorized'
+            });
+        }
+        
         res.status(200).json({
             success: true,
             message: 'Prompt deleted successfully'
@@ -270,19 +369,25 @@ const deletePrompt = async (req, res) => {
 const getPrompt = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.userId;
         
-        // For now, return placeholder - implement database later
+        // Find the prompt (only if it belongs to the user)
+        const prompt = await Prompt.findOne({
+            _id: id,
+            user: userId
+        }).lean();
+        
+        if (!prompt) {
+            return res.status(404).json({
+                success: false,
+                message: 'Prompt not found or unauthorized'
+            });
+        }
+        
         res.status(200).json({
             success: true,
             data: {
-                prompt: {
-                    id: id,
-                    input: "Sample input",
-                    generatedPrompt: "This is a sample generated prompt",
-                    category: "creative",
-                    model: "ai-enhanced-offline",
-                    createdAt: new Date().toISOString()
-                }
+                prompt: prompt
             }
         });
         
@@ -295,6 +400,45 @@ const getPrompt = async (req, res) => {
     }
 };
 
+// @desc    Get daily usage stats
+// @route   GET /api/prompts/usage
+// @access  Private
+const getDailyUsage = async (req, res) => {
+    try {
+        const userId = req.userId;
+        
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        
+        const today = new Date().toISOString().split('T')[0];
+        const todaysUsage = user.dailyUsage.date === today ? user.dailyUsage.count : 0;
+        
+        res.status(200).json({
+            success: true,
+            data: {
+                dailyLimit: user.promptLimit,
+                todaysUsage: todaysUsage,
+                remainingToday: Math.max(0, user.promptLimit - todaysUsage),
+                canGenerate: todaysUsage < user.promptLimit,
+                totalPrompts: user.promptCount,
+                isPremium: user.isPremium
+            }
+        });
+        
+    } catch (error) {
+        console.error('Get daily usage error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch usage stats'
+        });
+    }
+};
+
 module.exports = {
     generatePrompt,
     batchGeneratePrompts,
@@ -302,5 +446,6 @@ module.exports = {
     getPromptHistory,
     getCategories,
     deletePrompt,
-    getPrompt
+    getPrompt,
+    getDailyUsage
 };

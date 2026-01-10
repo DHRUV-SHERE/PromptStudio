@@ -9,8 +9,12 @@ class AIService {
         console.log('🔍 Environment Check:');
         console.log('- GEMINI_API_KEY present:', !!process.env.GEMINI_API_KEY);
         console.log('- OPENAI_API_KEY present:', !!process.env.OPENAI_API_KEY);
-        console.log('- GEMINI_MODEL:', process.env.GEMINI_MODEL || 'gemini-2.0-flash');
-        console.log('- OPENAI_MODEL:', process.env.OPENAI_MODEL || 'gpt-4o-mini');
+        console.log('- GEMINI_MODEL:', process.env.GEMINI_MODEL || 'gemini-1.5-flash');
+        console.log('- OPENAI_MODEL:', process.env.OPENAI_MODEL || 'gpt-3.5-turbo');
+
+        // Force correct models based on API dashboard
+        process.env.GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+        process.env.OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
         this.providers = {
             openai: null,
@@ -101,6 +105,11 @@ Generate a business prompt that includes:
             await this.initializeGemini();
 
             this.initialized = true;
+            
+            // Set current provider based on availability priority
+            this.currentProvider = this.providers.available.includes('gemini') ? 'gemini' : 
+                                 this.providers.available.includes('openai') ? 'openai' : 'offline';
+                                 
             console.log(`✅ AI Service initialized. Available providers: ${this.providers.available.join(', ') || 'none (offline mode)'}`);
             console.log(`Current provider: ${this.currentProvider}`);
 
@@ -117,35 +126,27 @@ Generate a business prompt that includes:
         }
 
         try {
-            // Clean the API key (remove quotes, trim whitespace)
             const apiKey = process.env.OPENAI_API_KEY.trim().replace(/['"]/g, '');
-            this.providers.available.push('openai');
-            console.log('✅ OpenAI added to available providers');
-
             this.providers.openai = new OpenAI({
                 apiKey: apiKey,
                 timeout: 15000
             });
 
-            // Test connection
+            // Test connection with correct models
             console.log('🔗 Testing OpenAI connection...');
             const completion = await this.providers.openai.chat.completions.create({
-                model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+                model: 'gpt-4o-mini',
                 messages: [{ role: "user", content: "Say 'Connected' in one word" }],
                 max_tokens: 10,
             });
 
-            console.log(`✅ OpenAI provider initialized and connected. Response: "${completion.choices[0].message.content}"`);
+            console.log(`✅ OpenAI provider initialized. Response: "${completion.choices[0].message.content}"`);
             this.providers.available.push('openai');
 
         } catch (error) {
             console.error('❌ Failed to initialize OpenAI:', error.message);
-
-            // Check if it's a quota error
             if (error.message.includes('quota') || error.status === 429) {
                 console.log('⏳ OpenAI quota exceeded. Will try again later.');
-            } else if (error.message.includes('API key') || error.status === 401) {
-                console.error('❌ Invalid OpenAI API key');
             }
         }
     }
@@ -157,15 +158,12 @@ Generate a business prompt that includes:
         }
 
         try {
-            // Clean the API key (remove quotes, trim whitespace)
             const apiKey = process.env.GEMINI_API_KEY.trim().replace(/['"]/g, '');
-
             const genAI = new GoogleGenerativeAI(apiKey);
             this.providers.gemini = genAI;
 
-            // Use gemini-2.0-flash as default
-            const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
-
+            // Use best available Gemini model
+            const modelName = 'gemini-2.5-flash';
             console.log(`🔧 Initializing Gemini with model: ${modelName}`);
 
             this.providers.geminiModel = genAI.getGenerativeModel({
@@ -179,47 +177,26 @@ Generate a business prompt that includes:
             });
 
             // Test connection
-            // Test connection
             console.log('🔗 Testing Gemini connection...');
-            const testPrompt = "Say 'Connected' in one word";
-            const result = await this.providers.geminiModel.generateContent(testPrompt);
+            const result = await this.providers.geminiModel.generateContent("Say 'Connected' in one word");
             const response = await result.response;
+            const text = response.text?.() || response.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-            // ✅ SAFE text extraction (IMPORTANT)
-            const text =
-                response.text?.() ||
-                response.candidates?.[0]?.content?.parts?.[0]?.text ||
-                '';
-
-            console.log(`✅ Gemini provider initialized and connected. Response: "${text}"`);
-
-            // ✅ Mark Gemini as available
+            console.log(`✅ Gemini provider initialized. Response: "${text}"`);
             this.providers.available.push('gemini');
-
 
         } catch (error) {
             console.error('❌ Failed to initialize Gemini:', error.message);
-
-            // Try alternative models
             await this.tryAlternativeGeminiModels();
-
-            // Check if it's a quota error
-            if (error.message.includes('quota') || error.message.includes('429')) {
-                console.log('⏳ Gemini quota exceeded. Will try again later.');
-            } else if (error.message.includes('API key')) {
-                console.error('❌ Invalid Gemini API key');
-            } else if (error.message.includes('404')) {
-                console.error('❌ Model not found. Trying alternatives...');
-            }
         }
     }
 
     async tryAlternativeGeminiModels() {
         const alternativeModels = [
+            'gemini-2.5-flash-lite',
             'gemini-1.5-flash',
             'gemini-1.5-pro',
-            'gemini-1.0-pro',
-            'gemini-2.0-flash-exp'
+            'gemini-1.0-pro'
         ];
 
         console.log('🔄 Trying alternative Gemini models...');
@@ -227,40 +204,28 @@ Generate a business prompt that includes:
         for (const modelName of alternativeModels) {
             try {
                 console.log(`   Testing model: ${modelName}`);
-                const testModel = this.providers.gemini.getGenerativeModel({
-                    model: modelName
-                });
-
-                // Test the model
-                const testPrompt = "Say 'Connected' in one word";
-                const result = await testModel.generateContent(testPrompt);
+                const testModel = this.providers.gemini.getGenerativeModel({ model: modelName });
+                const result = await testModel.generateContent("Say 'Connected' in one word");
                 const response = await result.response;
 
-                // Update the model
                 this.providers.geminiModel = testModel;
-
                 console.log(`   ✅ Model ${modelName} connected: "${response.text()}"`);
                 this.providers.available.push('gemini');
-                console.log(`✅ Gemini provider initialized with alternative model: ${modelName}`);
-
-                // Update environment variable for consistency
                 process.env.GEMINI_MODEL = modelName;
                 return;
-
             } catch (modelError) {
-                console.log(`   ❌ Model ${modelName} failed: ${modelError.message.substring(0, 100)}`);
+                console.log(`   ❌ Model ${modelName} failed`);
                 continue;
             }
         }
-
-        console.error('❌ All Gemini models failed. Gemini provider disabled.');
+        console.error('❌ All Gemini models failed.');
     }
 
     async generateWithOpenAI(input, category, options) {
         try {
             console.log('🚀 Attempting generation with OpenAI...');
 
-            const modelName = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+            const modelName = 'gpt-4o-mini';
             const template = this.templates[category] || this.templates.creative;
             const fullPrompt = template.replace('{input}', input);
 
@@ -322,7 +287,7 @@ Generate a business prompt that includes:
         try {
             console.log('🚀 Attempting generation with Gemini...');
 
-            const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+            const modelName = 'gemini-2.5-flash';
             const template = this.templates[category] || this.templates.creative;
             const fullPrompt = template.replace('{input}', input);
 
@@ -382,18 +347,12 @@ Generate a business prompt that includes:
         console.log(`📝 Generating prompt for: ${input.substring(0, 50)}...`);
 
         // Try providers in order: Gemini → OpenAI → Offline
-        const providerOrder = ['openai','gemini'];
+        const providerOrder = ['gemini', 'openai'];
 
         for (const provider of providerOrder) {
             if (this.providers.available.includes(provider)) {
                 try {
                     console.log(`🔄 Attempting with ${provider}...`);
-
-                    if (provider === 'openai' && this.providers.openai) {
-                        const result = await this.generateWithOpenAI(input, category, options);
-                        this.currentProvider = 'openai';
-                        return result;
-                    }
 
                     if (provider === 'gemini' && this.providers.gemini) {
                         const result = await this.generateWithGemini(input, category, options);
@@ -401,30 +360,151 @@ Generate a business prompt that includes:
                         return result;
                     }
 
+                    if (provider === 'openai' && this.providers.openai) {
+                        const result = await this.generateWithOpenAI(input, category, options);
+                        this.currentProvider = 'openai';
+                        return result;
+                    }
+
                 } catch (error) {
                     console.warn(`⚠️ ${provider} failed:`, error.message.substring(0, 100) + '...');
-
-                    // If it's a quota/billing error, skip to next provider
-                    if (error.message.includes('quota') || error.status === 429) {
-                        console.warn(`   💡 ${provider} quota exceeded. Trying next provider...`);
-                        continue;
-                    }
-
-                    // For 404 model errors, try next provider
-                    if (error.message.includes('404') || error.message.includes('not found')) {
-                        console.warn(`   💡 ${provider} model not found. Trying next provider...`);
-                        continue;
-                    }
-
-                    // For other errors, also try next provider
                     continue;
                 }
             }
         }
 
-        // All providers failed or not available, use enhanced offline mode
+        // All providers failed, use enhanced offline mode
         console.log('📴 All AI providers failed. Using enhanced offline generation.');
         return this.generateEnhancedOfflinePrompt(input, category, options);
+    }
+
+    async generateStructuredPrompt(structuredInput) {
+        const { category, description, additionalDetails, customDetails } = structuredInput;
+        
+        console.log(`📝 Generating structured prompt for: ${category}`);
+        
+        // Build the embedded prompt template
+        let embeddedPrompt = `Hi AI assistant, I need to generate ${category}. Here are the details:\n\n`;
+        embeddedPrompt += `Main Description: ${description}\n\n`;
+        
+        // Add additional details
+        if (additionalDetails && additionalDetails.length > 0) {
+            embeddedPrompt += "Additional Requirements:\n";
+            additionalDetails.forEach(detail => {
+                if (detail.type && detail.value) {
+                    embeddedPrompt += `- ${detail.type}: ${detail.value}\n`;
+                }
+            });
+            embeddedPrompt += "\n";
+        }
+        
+        // Add custom details
+        if (customDetails && customDetails.length > 0) {
+            embeddedPrompt += "Custom Specifications:\n";
+            customDetails.forEach(detail => {
+                if (detail.name && detail.value) {
+                    embeddedPrompt += `- ${detail.name}: ${detail.value}\n`;
+                }
+            });
+            embeddedPrompt += "\n";
+        }
+        
+        embeddedPrompt += "Please generate ONLY the optimized prompt that I can directly copy and paste into AI tools. Do not include any explanations, introductions, or additional text - just return the clean, ready-to-use prompt.";
+        
+        // Try to generate with AI providers
+        if (this.providers.available.length > 0) {
+            try {
+                const result = await this.generatePrompt(embeddedPrompt, 'creative', {});
+                // Clean the response to remove any extra content
+                if (result.success && result.prompt) {
+                    result.prompt = this.cleanPromptResponse(result.prompt);
+                }
+                return result;
+            } catch (error) {
+                console.warn('⚠️ AI generation failed, using structured offline mode:', error.message);
+            }
+        }
+        
+        // Fallback to structured offline generation
+        return this.generateStructuredOfflinePrompt(structuredInput);
+    }
+    
+    // Clean AI response to remove extra content
+    cleanPromptResponse(response) {
+        // Remove common prefixes and explanations
+        let cleaned = response
+            .replace(/^Here is.*?prompt.*?:/i, '')
+            .replace(/^Here's.*?prompt.*?:/i, '')
+            .replace(/^This is.*?prompt.*?:/i, '')
+            .replace(/^Below is.*?prompt.*?:/i, '')
+            .replace(/^I'll.*?prompt.*?:/i, '')
+            .replace(/^.*?comprehensive.*?prompt.*?:/i, '')
+            .replace(/^.*?optimized.*?prompt.*?:/i, '')
+            .replace(/^.*?detailed.*?prompt.*?:/i, '')
+            .replace(/This prompt is.*$/i, '')
+            .replace(/Feel free to.*$/i, '')
+            .replace(/You can.*$/i, '')
+            .replace(/Note:.*$/i, '')
+            .replace(/\*\*.*?\*\*/g, '') // Remove markdown bold
+            .replace(/^[\s\n]+|[\s\n]+$/g, '') // Trim whitespace
+            .replace(/\n\s*\n/g, '\n'); // Remove extra line breaks
+            
+        return cleaned || response; // Return original if cleaning fails
+    }
+    
+    generateStructuredOfflinePrompt(structuredInput) {
+        const { category, description, additionalDetails, customDetails } = structuredInput;
+        
+        console.log('🌆 Generating structured offline prompt');
+        
+        // Create a comprehensive prompt based on the structure
+        let finalPrompt = `Create ${category}: "${description}"`;
+        
+        // Add additional details
+        if (additionalDetails && additionalDetails.length > 0) {
+            const detailsText = additionalDetails
+                .filter(d => d.type && d.value)
+                .map(d => `${d.type}: ${d.value}`)
+                .join(', ');
+            if (detailsText) {
+                finalPrompt += `. Specifications: ${detailsText}`;
+            }
+        }
+        
+        // Add custom details
+        if (customDetails && customDetails.length > 0) {
+            const customText = customDetails
+                .filter(d => d.name && d.value)
+                .map(d => `${d.name}: ${d.value}`)
+                .join(', ');
+            if (customText) {
+                finalPrompt += `. Additional requirements: ${customText}`;
+            }
+        }
+        
+        // Add category-specific enhancements
+        const categoryEnhancements = {
+            '🎨 Image Generation': 'High resolution, detailed, professional quality, trending on ArtStation',
+            '✍️ Content Writing': 'Well-structured, engaging, SEO-optimized, professional tone',
+            '💻 Code Generation': 'Clean, efficient, well-commented, following best practices',
+            '📊 Business & Marketing': 'Professional, persuasive, data-driven, actionable insights',
+            '🎬 Video Creation': 'Engaging, well-paced, high production value, audience-focused',
+            '📱 Social Media': 'Engaging, shareable, platform-optimized, trending hashtags'
+        };
+        
+        const enhancement = categoryEnhancements[category] || 'Professional, detailed, high-quality output';
+        finalPrompt += `. Make it ${enhancement}.`;
+        
+        return {
+            success: true,
+            prompt: finalPrompt,
+            category: category,
+            model: 'promptstudio-enhanced',
+            provider: 'offline',
+            tokens: Math.floor(finalPrompt.length / 4),
+            online: false,
+            timestamp: new Date().toISOString()
+        };
     }
 
     generateEnhancedOfflinePrompt(input, category = 'creative', options = {}) {
@@ -903,7 +983,7 @@ We recommend [primary strategy] to achieve [objective], requiring [investment/re
             try {
                 const testPrompt = "Say 'OpenAI OK'";
                 const completion = await this.providers.openai.chat.completions.create({
-                    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+                    model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
                     messages: [{ role: "user", content: testPrompt }],
                     max_tokens: 10,
                 });
@@ -951,12 +1031,12 @@ We recommend [primary strategy] to achieve [objective], requiring [investment/re
             available: this.providers.available,
             openai: {
                 configured: !!this.providers.openai,
-                model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+                model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
                 status: this.providers.available.includes('openai') ? 'ready' : 'disabled'
             },
             gemini: {
                 configured: !!this.providers.gemini,
-                model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+                model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
                 status: this.providers.available.includes('gemini') ? 'ready' : 'disabled',
                 note: 'New projects may need 24-48h for full quota'
             },
@@ -975,7 +1055,7 @@ We recommend [primary strategy] to achieve [objective], requiring [investment/re
         }
 
         if (this.providers.available.includes('gemini')) {
-            models.push('gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro');
+            models.push('gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro');
         }
 
         if (models.length === 0) {
