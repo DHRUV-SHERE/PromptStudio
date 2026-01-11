@@ -1,7 +1,9 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider } from "./context/authContext.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
+import { ToastProvider } from "./context/toastContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoutes.jsx";
 import Login from "./pages/Login.jsx";
 import Layout from "./Layout/Layout";
@@ -14,10 +16,30 @@ import Profile from "./pages/Profile.jsx";
 import History from "./pages/History.jsx";
 
 function App() {
+  // Scroll to top on route change
+  useEffect(() => {
+    const handleRouteChange = () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    
+    // Listen for route changes
+    const observer = new MutationObserver(() => {
+      if (window.location.pathname !== observer.lastPath) {
+        observer.lastPath = window.location.pathname;
+        handleRouteChange();
+      }
+    });
+    
+    observer.lastPath = window.location.pathname;
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    return () => observer.disconnect();
+  }, []);
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
+        <ToastProvider>
+          <Router>
           <Routes>
             {/* Public routes without Layout wrapper */}
             <Route path="/login" element={<Login />} />
@@ -41,7 +63,8 @@ function App() {
             {/* Fallback - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </Router>
+          </Router>
+        </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -87,26 +87,26 @@ UserSchema.methods.comparePassword = async function(candidatePassword) {
 };
 
 // Add refresh token method
-UserSchema.methods.addRefreshToken = function(tokenData) {
+UserSchema.methods.addRefreshToken = async function(tokenData) {
     // Keep only last 5 refresh tokens (security)
     if (this.refreshTokens.length >= 5) {
         this.refreshTokens.shift(); // Remove oldest
     }
     this.refreshTokens.push(tokenData);
-    return this.save();
+    return await this.save();
 };
 
 // Remove refresh token method
-UserSchema.methods.removeRefreshToken = function(token) {
+UserSchema.methods.removeRefreshToken = async function(token) {
     this.refreshTokens = this.refreshTokens.filter(rt => rt.token !== token);
-    return this.save();
+    return await this.save();
 };
 
 // Clean expired tokens method
-UserSchema.methods.cleanExpiredTokens = function() {
+UserSchema.methods.cleanExpiredTokens = async function() {
     const now = new Date();
     this.refreshTokens = this.refreshTokens.filter(rt => rt.expiresAt > now);
-    return this.save();
+    return await this.save();
 };
 
 // Remove password from JSON response
@@ -131,7 +131,7 @@ UserSchema.methods.checkDailyLimit = function() {
 };
 
 // Increment daily usage
-UserSchema.methods.incrementDailyUsage = function() {
+UserSchema.methods.incrementDailyUsage = async function() {
     const today = new Date().toISOString().split('T')[0];
     
     // Reset count if it's a new day
@@ -144,7 +144,7 @@ UserSchema.methods.incrementDailyUsage = function() {
     this.promptCount += 1;
     this.lastPromptAt = new Date();
     
-    return this.save();
+    return await this.save();
 };
 
 module.exports = mongoose.model('User', UserSchema);

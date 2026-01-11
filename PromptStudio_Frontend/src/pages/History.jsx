@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from "../context/authContext";
+import { useToast } from "../context/toastContext";
 import { 
   Clock, 
   Copy, 
@@ -17,11 +18,11 @@ import {
   RefreshCw,
   Calendar
 } from "lucide-react";
-import toast from 'react-hot-toast';
 import { authAPI } from '../services/api';
 
 const History = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [historyItems, setHistoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,7 +75,7 @@ const History = () => {
     } catch (err) {
       console.error('Error fetching history:', err);
       setError(err.message || 'Failed to load prompt history');
-      toast.error('Failed to load history. Please try again.');
+      showToast('Failed to load history. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,7 @@ const History = () => {
       const response = await authAPI.deletePrompt(promptId);
       
       if (response.success) {
-        toast.success('Prompt deleted successfully');
+        showToast('Prompt deleted successfully', 'success');
         // Remove from local state
         setHistoryItems(prev => prev.filter(item => item._id !== promptId));
         // Refresh stats
@@ -108,7 +109,7 @@ const History = () => {
       }
     } catch (err) {
       console.error('Error deleting prompt:', err);
-      toast.error(err.message || 'Failed to delete prompt');
+      showToast(err.message || 'Failed to delete prompt', 'error');
     }
   };
 
@@ -118,10 +119,10 @@ const History = () => {
     
     try {
       await navigator.clipboard.writeText(text);
-      toast.success('Prompt copied to clipboard!');
+      showToast('Prompt copied to clipboard!', 'success');
     } catch (err) {
       console.error('Failed to copy:', err);
-      toast.error('Failed to copy prompt');
+      showToast('Failed to copy prompt', 'error');
     }
   };
 
@@ -147,7 +148,7 @@ const History = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    toast.success('Prompt downloaded!');
+    showToast('Prompt downloaded!', 'success');
   };
 
   // Handle bulk selection
@@ -169,7 +170,7 @@ const History = () => {
 
   const handleBulkDelete = async () => {
     if (selectedItems.length === 0) {
-      toast.error('No prompts selected');
+      showToast('No prompts selected', 'error');
       return;
     }
     
@@ -181,12 +182,12 @@ const History = () => {
       const deletePromises = selectedItems.map(id => authAPI.deletePrompt(id));
       await Promise.all(deletePromises);
       
-      toast.success(`${selectedItems.length} prompts deleted successfully`);
+      showToast(`${selectedItems.length} prompts deleted successfully`, 'success');
       setSelectedItems([]);
       fetchHistory();
     } catch (err) {
       console.error('Bulk delete error:', err);
-      toast.error('Failed to delete some prompts');
+      showToast('Failed to delete some prompts', 'error');
     }
   };
 

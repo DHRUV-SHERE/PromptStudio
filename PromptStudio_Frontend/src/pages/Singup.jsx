@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Sparkles, Mail, Lock, User, ArrowLeft, Shield, Zap, Rocket, CheckCircle, Star, AlertCircle } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { useAuth } from '../context/authContext';
+import { useToast } from '../context/toastContext';
 
 const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +18,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { register, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -97,7 +98,7 @@ const Signup = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error('Please fix the errors in the form');
+      showToast('Please fix the errors in the form', 'error');
       return;
     }
     
@@ -111,17 +112,14 @@ const Signup = () => {
       });
       
       if (result?.success) {
-        toast.success('🎉 Account created successfully! Welcome to PromptStudio.', {
-          duration: 4000,
-          icon: '👋'
-        });
+        showToast('Account created successfully! Welcome to PromptStudio.', 'success');
         
         // Redirect to home/dashboard
         setTimeout(() => {
           navigate('/', { replace: true });
         }, 500);
       } else {
-        toast.error(result?.message || 'Signup failed');
+        showToast(result?.message || 'Signup failed', 'error');
       }
     } catch (error) {
       console.error('Signup error:', error);
@@ -138,7 +136,7 @@ const Signup = () => {
         errorMessage = error.message;
       }
       
-      toast.error(errorMessage);
+      showToast(errorMessage, 'error');
       
       // Clear sensitive data on error
       setFormData(prev => ({

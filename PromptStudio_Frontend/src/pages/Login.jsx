@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Sparkles, Mail, Lock, ArrowLeft, Zap, Shield, Rocket, CheckCircle, AlertCircle } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { useAuth } from '../context/authContext';
+import { useToast } from '../context/toastContext';
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +13,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -47,7 +48,7 @@ const Login = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error('Please fix the errors in the form');
+      showToast('Please fix the errors in the form', 'error');
       return;
     }
     
@@ -61,17 +62,14 @@ const Login = () => {
       });
       
       if (result?.success) {
-        toast.success('Welcome back! You have successfully logged in.', {
-          icon: '👋',
-          duration: 3000
-        });
+        showToast('Welcome back! You have successfully logged in.', 'success');
         
         // Small delay for better UX
         setTimeout(() => {
           navigate(from, { replace: true });
         }, 500);
       } else {
-        toast.error(result?.message || 'Login failed');
+        showToast(result?.message || 'Login failed', 'error');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -89,7 +87,7 @@ const Login = () => {
         errorMessage = error.message;
       }
       
-      toast.error(errorMessage);
+      showToast(errorMessage, 'error');
       
       // Clear password on error
       setPassword('');

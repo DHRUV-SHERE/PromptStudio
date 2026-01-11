@@ -4,7 +4,7 @@ import {
 } from "lucide-react";
 import { authAPI } from "../services/api";
 import { useAuth } from "../context/authContext";
-import toast from 'react-hot-toast';
+import { useToast } from "../context/toastContext";
 
 // Predefined categories for quick selection
 const quickCategories = [
@@ -21,6 +21,7 @@ const additionalDetailOptions = [
 
 const Generator = () => {
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [additionalDetails, setAdditionalDetails] = useState([]);
@@ -107,13 +108,13 @@ const Generator = () => {
 
   const generatePrompt = async () => {
     if (!category.trim() || !description.trim()) {
-      toast.error("Please fill in category and description");
+      showToast("Please fill in category and description", "error");
       return;
     }
 
     // Check daily limit for authenticated users
     if (isAuthenticated && dailyUsage && !dailyUsage.canGenerate) {
-      toast.error(`Daily limit reached! You've used ${dailyUsage.todaysUsage}/${dailyUsage.dailyLimit} prompts today. Try again tomorrow!`);
+      showToast(`Daily limit reached! You've used ${dailyUsage.todaysUsage}/${dailyUsage.dailyLimit} prompts today. Try again tomorrow!`, "error");
       return;
     }
 
@@ -131,7 +132,7 @@ const Generator = () => {
         
         if (result.success) {
           setGeneratedPrompt(result.data.generatedPrompt);
-          toast.success('Prompt generated successfully!');
+          showToast('Prompt generated successfully!', 'success');
           // Update daily usage
           await fetchDailyUsage();
         } else {
@@ -157,15 +158,15 @@ const Generator = () => {
         
         prompt += ". Make it detailed and professional.";
         setGeneratedPrompt(prompt);
-        toast.success('Basic prompt generated! Sign in for AI-enhanced prompts.');
+        showToast('Basic prompt generated! Sign in for AI-enhanced prompts.', 'success');
       }
     } catch (error) {
       console.error('Generation error:', error);
       
       if (error.response?.status === 429) {
-        toast.error('Daily limit reached! Try again tomorrow.');
+        showToast('Daily limit reached! Try again tomorrow.', 'error');
       } else {
-        toast.error(error.message || 'Failed to generate prompt');
+        showToast(error.message || 'Failed to generate prompt', 'error');
         
         // Fallback prompt
         let fallbackPrompt = `Create ${category}: ${description}`;
@@ -191,10 +192,10 @@ const Generator = () => {
     try {
       await navigator.clipboard.writeText(generatedPrompt);
       setCopied(true);
-      toast.success('Prompt copied to clipboard!');
+      showToast('Prompt copied to clipboard!', 'success');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast.error("Failed to copy prompt");
+      showToast("Failed to copy prompt", "error");
     }
   };
 
