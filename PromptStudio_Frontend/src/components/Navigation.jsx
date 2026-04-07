@@ -64,32 +64,13 @@ const Navigation = () => {
           {/* Logo */}
 <Link 
   to="/" 
-  className="flex items-center gap-3 hover:opacity-80 transition-all duration-300 group"
+  className="flex items-center hover:opacity-80 transition-all duration-300"
 >
-  <div className="relative">
-    {/* Logo Image Container with dark mode support */}
-    <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/10 dark:to-accent/10">
-      <img 
-        src={Resource.logo} 
-        alt="PromptStudio Logo" 
-        className="w-full h-full object-contain p-1.5 dark:brightness-0 dark:invert dark:contrast-200"
-        /* Alternative filters:
-           dark:filter dark:brightness-0 dark:invert dark:saturate-0 dark:hue-rotate-180
-        */
-      />
-      {/* Optional: Add a subtle glow effect for dark mode */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/5 rounded-xl" />
-    </div>
-  </div>
-  
-  <div className="flex flex-col">
-    <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent dark:from-primary/90 dark:to-accent/90">
-      PromptStudio
-    </span>
-    <span className="text-xs text-muted-foreground -mt-1 hidden sm:block dark:text-muted-foreground">
-      AI Prompt Generator
-    </span>
-  </div>
+  <img 
+    src={Resource.logo} 
+    alt="PromptStudio" 
+    className="h-8 sm:h-10 w-auto object-contain"
+  />
 </Link>
 
           {/* Desktop Navigation */}

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Sparkles, Mail, Lock, User, ArrowLeft, Shield, Zap, Rocket, CheckCircle, Star, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, Shield, Zap, Rocket, CheckCircle, Star, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/authContext';
 import { useToast } from '../context/toastContext';
+import Resource from '../Resource';
 
 const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -218,15 +219,7 @@ const Signup = () => {
                 <div className="mb-6 sm:mb-8 animate-fade-in-left">
                   {/* Logo */}
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                      <Star className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                    </div>
-                    <div>
-                      <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
-                        Join PromptStudio
-                      </h1>
-                      <p className="text-xs sm:text-sm text-muted-foreground">Start your AI journey today</p>
-                    </div>
+                    <img src={Resource.logo} alt="PromptStudio" className="h-10 w-auto object-contain" />
                   </div>
                   
                   {/* Welcome text */}
