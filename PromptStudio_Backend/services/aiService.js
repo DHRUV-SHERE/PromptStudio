@@ -172,7 +172,7 @@ Generate a business prompt that includes:
                     temperature: 0.9,
                     topP: 0.8,
                     topK: 40,
-                    maxOutputTokens: 2048,
+                    maxOutputTokens: 8192,
                 }
             });
 
@@ -243,7 +243,7 @@ Generate a business prompt that includes:
                 messages: [
                     {
                         role: "system",
-                        content: "You are a helpful assistant specialized in generating and refining prompts."
+                        content: "You are an expert prompt engineer. Generate highly detailed, optimized prompts for AI tools. Output ONLY the final prompt with no explanations."
                     },
                     {
                         role: "user",
@@ -251,7 +251,7 @@ Generate a business prompt that includes:
                     }
                 ],
                 temperature: 0.9,
-                max_tokens: 2048,
+                max_tokens: 4096,
             });
 
             const generatedText = completion?.choices?.[0]?.message?.content || '';
@@ -383,13 +383,15 @@ Generate a business prompt that includes:
         
         console.log(`📝 Generating structured prompt for: ${category}`);
         
-        // Build the embedded prompt template
-        let embeddedPrompt = `Hi AI assistant, I need to generate ${category}. Here are the details:\n\n`;
+        // Build enhanced embedded prompt template
+        let embeddedPrompt = `You are an expert prompt engineer. Your task is to create highly detailed, optimized prompts for AI tools based on user requirements.\n\n`;
+        embeddedPrompt += `=== USER REQUIREMENTS ===\n`;
+        embeddedPrompt += `Category: ${category}\n`;
         embeddedPrompt += `Main Description: ${description}\n\n`;
         
-        // Add additional details
+        // Add additional details/options
         if (additionalDetails && additionalDetails.length > 0) {
-            embeddedPrompt += "Additional Requirements:\n";
+            embeddedPrompt += "Selected Options:\n";
             additionalDetails.forEach(detail => {
                 if (detail.type && detail.value) {
                     embeddedPrompt += `- ${detail.type}: ${detail.value}\n`;
@@ -409,7 +411,15 @@ Generate a business prompt that includes:
             embeddedPrompt += "\n";
         }
         
-        embeddedPrompt += "Please generate ONLY the optimized prompt that I can directly copy and paste into AI tools. Do not include any explanations, introductions, or additional text - just return the clean, ready-to-use prompt.";
+        embeddedPrompt += `=== PROMPT GENERATION RULES ===\n`;
+        embeddedPrompt += `1. Generate ONLY the final optimized prompt - NO explanations, introductions, or additional text\n`;
+        embeddedPrompt += `2. Make the prompt extremely detailed and specific\n`;
+        embeddedPrompt += `3. Include relevant technical parameters, style guides, and quality standards\n`;
+        embeddedPrompt += `4. Use AI-optimized formatting with clear instructions\n`;
+        embeddedPrompt += `5. The prompt should be ready to copy-paste directly into AI tools like ChatGPT, Claude, Midjourney, DALL-E, Gemini, or Stable Diffusion\n`;
+        embeddedPrompt += `6. Be comprehensive but avoid unnecessary padding - every word should add value\n\n`;
+        embeddedPrompt += `=== YOUR RESPONSE ===\n`;
+        embeddedPrompt += `Generate the complete, ready-to-use prompt now:`;
         
         // Try to generate with AI providers
         if (this.providers.available.length > 0) {

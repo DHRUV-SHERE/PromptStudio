@@ -214,9 +214,9 @@ const Index = () => {
                 </div>
               </div>
               <div>
-                <h4 className="text-lg font-semibold mb-4 text-green-600 dark:text-green-400">What You Get:</h4>
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
-                  <p className="text-sm text-green-700 dark:text-green-300 font-mono leading-relaxed">
+                <h4 className="text-lg font-semibold mb-4 text-primary">What You Get:</h4>
+                <div className="bg-secondary border border-border rounded-xl p-4">
+                  <p className="text-sm text-foreground font-mono leading-relaxed">
                     "Create a photorealistic image of a cozy coffee shop interior with warm, ambient lighting. Include comfortable seating, wooden furniture, soft warm color palette with browns and golds, steam rising from coffee cups, and a welcoming atmosphere. High resolution, professional photography style."
                   </p>
                 </div>

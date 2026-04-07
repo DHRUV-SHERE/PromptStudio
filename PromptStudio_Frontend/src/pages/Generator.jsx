@@ -1,38 +1,85 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
-  Copy, Check, RefreshCw, Sparkles, Wand2, Plus, X, Info, AlertTriangle 
+  Copy, Check, RefreshCw, Sparkles, Wand2, Info, AlertTriangle, X 
 } from "lucide-react";
 import { authAPI } from "../services/api";
 import { useAuth } from "../context/authContext";
 import { useToast } from "../context/toastContext";
 
-// Predefined categories for quick selection
-const quickCategories = [
-  "🎨 Image Generation", "✍️ Content Writing", "💻 Code Generation", 
-  "📊 Business & Marketing", "🎬 Video Creation", "📱 Social Media",
-  "🎵 Music & Audio", "🎮 Game Development", "📚 Education & Learning"
-];
-
-// Additional detail options
-const additionalDetailOptions = [
-  "Style", "Color", "Size", "Tone", "Audience", "Platform", "Duration", 
-  "Quality", "Format", "Language", "Mood", "Theme", "Budget", "Timeline"
-];
+// Category-specific options with chips
+const categoryOptions = {
+  '🎨 Image Generation': {
+    aspectRatio: ['Portrait (9:16)', 'Landscape (16:9)', 'Square (1:1)', 'Wide (21:9)', '4K (3840x2160)'],
+    style: ['Photorealistic', 'Digital Art', 'Oil Painting', 'Watercolor', 'Anime/Manga', '3D Render', 'Abstract', 'Minimalist'],
+    mood: ['Happy', 'Melancholic', 'Dramatic', 'Peaceful', 'Mysterious', 'Energetic', 'Romantic'],
+    lighting: ['Golden Hour', 'Blue Hour', 'Studio', 'Natural', 'Neon', 'Dramatic Shadows', 'Soft Diffused'],
+    quality: ['4K', '8K', 'HD', 'Ultra HD']
+  },
+  '✍️ Content Writing': {
+    tone: ['Professional', 'Casual', 'Friendly', 'Formal', 'Humorous', 'Inspirational', 'Educational'],
+    length: ['Short (100-200 words)', 'Medium (300-500 words)', 'Long (800-1000 words)', 'Extended (1500+ words)'],
+    format: ['Blog Post', 'Article', 'Newsletter', 'Social Media Post', 'Story', 'Essay'],
+    audience: ['General Public', 'Tech Savvy', 'Business Professionals', 'Teenagers', 'Parents', 'Experts']
+  },
+  '💻 Code Generation': {
+    language: ['JavaScript', 'Python', 'Java', 'C++', 'Go', 'Rust', 'TypeScript', 'Swift', 'Kotlin'],
+    framework: ['React', 'Vue.js', 'Angular', 'Node.js', 'Django', 'Flask', 'Express', 'Spring Boot'],
+    complexity: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+    type: ['Function', 'Class', 'API Endpoint', 'Full Component', 'Algorithm', 'Database Query']
+  },
+  '📊 Business & Marketing': {
+    platform: ['LinkedIn', 'Twitter/X', 'Instagram', 'Facebook', 'Website', 'Email', 'Presentation'],
+    goal: ['Brand Awareness', 'Lead Generation', 'Sales', 'Engagement', 'Trust Building', 'Product Launch'],
+    tone: ['Professional', 'Casual', 'Urgent', 'Inspirational', 'Educational', 'Persuasive'],
+    audience: ['Startup Founders', 'Enterprise Executives', 'Small Business Owners', 'Marketing Professionals', 'General Consumers']
+  },
+  '🎬 Video Creation': {
+    type: ['Tutorial', 'Promo/Ad', 'Vlog', 'Short Film', 'Explainer', 'Product Review', 'Unboxing'],
+    duration: ['15 seconds', '30 seconds', '60 seconds', '2-3 minutes', '5-10 minutes', '10+ minutes'],
+    style: ['Cinematic', 'Vlog Style', 'Corporate', 'Animation', 'Live Action', 'Motion Graphics'],
+    platform: ['YouTube', 'TikTok', 'Instagram Reels', 'LinkedIn', 'Twitter/X']
+  },
+  '📱 Social Media': {
+    platform: ['Instagram', 'Twitter/X', 'LinkedIn', 'Facebook', 'TikTok', 'Pinterest', 'Threads'],
+    contentType: ['Post', 'Caption', 'Thread', 'Story', 'Reel Script', 'Poll', 'Carousel'],
+    goal: ['Engagement', 'Followers Growth', 'Brand Awareness', 'Traffic', 'Conversions'],
+    tone: ['Professional', 'Fun', 'Inspirational', 'Educational', 'Controversial', 'Casual']
+  },
+  '🎵 Music & Audio': {
+    genre: ['Pop', 'Rock', 'Hip-Hop', 'Electronic', 'Classical', 'Jazz', 'R&B', 'Country', 'Lo-fi'],
+    mood: ['Happy', 'Sad', 'Energetic', 'Calm', 'Epic', 'Romantic', 'Dark'],
+    instrument: ['Piano', 'Guitar', 'Drums', 'Strings', 'Electronic', 'Full Band', 'Acapella'],
+    useCase: ['Background Music', 'Songwriting', 'Soundtrack', 'Podcast Intro', 'Commercial']
+  },
+  '🎮 Game Development': {
+    genre: ['RPG', 'Action', 'Adventure', 'Puzzle', 'Strategy', 'Simulation', 'Horror', 'Sports'],
+    style: ['2D Pixel Art', '3D Realistic', 'Cartoon', 'Low Poly', 'Pixel Art', 'Hand-drawn'],
+    platform: ['PC', 'Mobile', 'Console', 'Web Browser', 'VR/AR'],
+    engine: ['Unity', 'Unreal Engine', 'Godot', 'GameMaker', 'Construct']
+  },
+  '📚 Education & Learning': {
+    level: ['Beginner', 'Intermediate', 'Advanced', 'Expert', 'All Levels'],
+    subject: ['Science', 'Mathematics', 'History', 'Language', 'Programming', 'Business', 'Arts'],
+    format: ['Lesson Plan', 'Quiz', 'Explanation', 'Tutorial', 'Study Guide', 'Flashcards'],
+    goal: ['Exam Preparation', 'Skill Building', 'Concept Understanding', 'Review', 'Practice']
+  }
+};
 
 const Generator = () => {
   const { isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [additionalDetails, setAdditionalDetails] = useState([]);
-  const [customDetails, setCustomDetails] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [customTags, setCustomTags] = useState([]);
+  const [customTagInput, setCustomTagInput] = useState("");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [dailyUsage, setDailyUsage] = useState(null);
   const [currentProvider, setCurrentProvider] = useState(null);
+  const customTagInputRef = useRef(null);
 
-  // Fetch daily usage and provider info on component mount
   useEffect(() => {
     if (isAuthenticated) {
       fetchDailyUsage();
@@ -51,7 +98,6 @@ const Generator = () => {
     }
   };
 
-  // Map frontend categories to backend enum values
   const mapCategoryToEnum = (category) => {
     const categoryMap = {
       '🎨 Image Generation': 'creative',
@@ -78,32 +124,34 @@ const Generator = () => {
     }
   };
 
-  const addAdditionalDetail = () => {
-    setAdditionalDetails([...additionalDetails, { type: "", value: "" }]);
+  const toggleOption = (optionType, option) => {
+    setSelectedOptions(prev => ({
+      ...prev,
+      [optionType]: option
+    }));
   };
 
-  const updateAdditionalDetail = (index, field, value) => {
-    const updated = [...additionalDetails];
-    updated[index][field] = value;
-    setAdditionalDetails(updated);
+  const handleCustomTagKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addCustomTag();
+    }
   };
 
-  const removeAdditionalDetail = (index) => {
-    setAdditionalDetails(additionalDetails.filter((_, i) => i !== index));
+  const addCustomTag = () => {
+    const tag = customTagInput.trim();
+    if (tag && !customTags.includes(tag)) {
+      setCustomTags([...customTags, tag]);
+    }
+    setCustomTagInput("");
   };
 
-  const addCustomDetail = () => {
-    setCustomDetails([...customDetails, { name: "", value: "" }]);
+  const removeCustomTag = (tagToRemove) => {
+    setCustomTags(customTags.filter(tag => tag !== tagToRemove));
   };
 
-  const updateCustomDetail = (index, field, value) => {
-    const updated = [...customDetails];
-    updated[index][field] = value;
-    setCustomDetails(updated);
-  };
-
-  const removeCustomDetail = (index) => {
-    setCustomDetails(customDetails.filter((_, i) => i !== index));
+  const getCurrentCategoryOptions = () => {
+    return categoryOptions[category] || {};
   };
 
   const generatePrompt = async () => {
@@ -112,7 +160,6 @@ const Generator = () => {
       return;
     }
 
-    // Check daily limit for authenticated users
     if (isAuthenticated && dailyUsage && !dailyUsage.canGenerate) {
       showToast(`Daily limit reached! You've used ${dailyUsage.todaysUsage}/${dailyUsage.dailyLimit} prompts today. Try again tomorrow!`, "error");
       return;
@@ -122,39 +169,41 @@ const Generator = () => {
     
     try {
       if (isAuthenticated) {
-        // Use new API structure for authenticated users
+        // Build options array for API
+        const optionsArray = Object.entries(selectedOptions)
+          .filter(([_, value]) => value)
+          .map(([key, value]) => ({ type: key, value }));
+
+        // Add custom tags as custom details
+        const customDetailsArray = customTags.map(tag => ({ name: 'Custom', value: tag }));
+
         const result = await authAPI.generatePrompt({
           category: mapCategoryToEnum(category),
           description: description,
-          additionalDetails: additionalDetails.filter(d => d.type && d.value),
-          customDetails: customDetails.filter(d => d.name && d.value)
+          additionalDetails: optionsArray,
+          customDetails: customDetailsArray
         });
         
         if (result.success) {
           setGeneratedPrompt(result.data.generatedPrompt);
           showToast('Prompt generated successfully!', 'success');
-          // Update daily usage
           await fetchDailyUsage();
         } else {
           throw new Error(result.message);
         }
       } else {
         // Fallback for non-authenticated users
-        let prompt = `Create ${category}: ${description}`;
+        let prompt = `${category}: ${description}`;
         
-        // Add additional details
-        additionalDetails.forEach(detail => {
-          if (detail.type && detail.value) {
-            prompt += `. ${detail.type}: ${detail.value}`;
+        Object.entries(selectedOptions).forEach(([key, value]) => {
+          if (value) {
+            prompt += `. ${key}: ${value}`;
           }
         });
-        
-        // Add custom details
-        customDetails.forEach(detail => {
-          if (detail.name && detail.value) {
-            prompt += `. ${detail.name}: ${detail.value}`;
-          }
-        });
+
+        if (customTags.length > 0) {
+          prompt += `. Additional details: ${customTags.join(', ')}`;
+        }
         
         prompt += ". Make it detailed and professional.";
         setGeneratedPrompt(prompt);
@@ -169,17 +218,17 @@ const Generator = () => {
         showToast(error.message || 'Failed to generate prompt', 'error');
         
         // Fallback prompt
-        let fallbackPrompt = `Create ${category}: ${description}`;
-        additionalDetails.forEach(detail => {
-          if (detail.type && detail.value) {
-            fallbackPrompt += `. ${detail.type}: ${detail.value}`;
+        let fallbackPrompt = `${category}: ${description}`;
+        Object.entries(selectedOptions).forEach(([key, value]) => {
+          if (value) {
+            fallbackPrompt += `. ${key}: ${value}`;
           }
         });
-        customDetails.forEach(detail => {
-          if (detail.name && detail.value) {
-            fallbackPrompt += `. ${detail.name}: ${detail.value}`;
-          }
-        });
+
+        if (customTags.length > 0) {
+          fallbackPrompt += `. Additional details: ${customTags.join(', ')}`;
+        }
+        
         fallbackPrompt += ". Make it detailed and professional.";
         setGeneratedPrompt(fallbackPrompt);
       }
@@ -198,6 +247,8 @@ const Generator = () => {
       showToast("Failed to copy prompt", "error");
     }
   };
+
+  const currentCategoryOptions = getCurrentCategoryOptions();
 
   return (
     <div className="min-h-screen gradient-hero p-4 animate-fade-in">
@@ -218,7 +269,7 @@ const Generator = () => {
             </div>
           </div>
           
-          {/* Daily Usage Display for Authenticated Users */}
+          {/* Daily Usage Display */}
           {isAuthenticated && dailyUsage && (
             <div className="glass rounded-2xl p-4 max-w-md mx-auto">
               <div className="flex items-center justify-between">
@@ -289,19 +340,29 @@ const Generator = () => {
             <input
               type="text"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="Enter your category (e.g., Image Generation, Blog Writing, etc.)"
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setSelectedOptions({});
+              }}
+              placeholder="Select or type a category..."
               className="w-full bg-background border border-border/70 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 text-lg"
             />
             
             <div>
               <p className="text-sm text-muted-foreground mb-3">Or choose from popular categories:</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {quickCategories.map((cat, index) => (
+                {Object.keys(categoryOptions).map((cat) => (
                   <button
-                    key={index}
-                    onClick={() => setCategory(cat)}
-                    className="p-3 text-sm bg-secondary/30 hover:bg-primary/10 rounded-xl transition-all text-left"
+                    key={cat}
+                    onClick={() => {
+                      setCategory(cat);
+                      setSelectedOptions({});
+                    }}
+                    className={`p-3 text-sm rounded-xl transition-all text-left ${
+                      category === cat 
+                        ? 'bg-primary text-white' 
+                        : 'bg-secondary/30 hover:bg-primary/10'
+                    }`}
                   >
                     {cat}
                   </button>
@@ -322,12 +383,12 @@ const Generator = () => {
             rows={4}
           />
           
-          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+          <div className="mt-4 p-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20">
             <div className="flex items-start gap-2">
-              <Info className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+              <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <div>
-                <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-2">How to write a good description:</h4>
-                <ul className="text-sm text-blue-600 dark:text-blue-400 space-y-1">
+                <h4 className="font-semibold text-foreground mb-2">How to write a good description:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Be specific about what you want</li>
                   <li>• Include the purpose or goal</li>
                   <li>• Mention your target audience if relevant</li>
@@ -339,97 +400,97 @@ const Generator = () => {
           </div>
         </div>
 
-        {/* Step 3: Additional Details */}
-        <div className="glass rounded-3xl p-6 border-gradient animate-fade-in-up hover-lift" style={{ animationDelay: '0.3s' }}>
-          <h2 className="text-2xl font-bold mb-4 animate-fade-in-left">Step 3: Additional Details (Optional)</h2>
-          
-          {/* Additional Details */}
-          <div className="space-y-4 mb-6">
-            <h3 className="text-lg font-semibold">Add specific details:</h3>
-            {additionalDetails.map((detail, index) => (
-              <div key={index} className="flex gap-3 items-start">
-                <input
-                  type="text"
-                  value={detail.type || ""}
-                  onChange={(e) => updateAdditionalDetail(index, 'type', e.target.value)}
-                  placeholder="Detail title (e.g., Style, Color, Size)"
-                  className="w-40 bg-background border border-border/70 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-                <input
-                  type="text"
-                  value={detail.value}
-                  onChange={(e) => updateAdditionalDetail(index, 'value', e.target.value)}
-                  placeholder="Detail content (e.g., Modern minimalist, Blue and white)"
-                  className="flex-1 bg-background border border-border/70 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-                <button
-                  onClick={() => removeAdditionalDetail(index)}
-                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={addAdditionalDetail}
-              className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl transition-all"
-            >
-              <Plus className="h-4 w-4" />
-              Add Detail
-            </button>
-          </div>
+        {/* Step 3: Category-Specific Options */}
+        {category && Object.keys(currentCategoryOptions).length > 0 && (
+          <div className="glass rounded-3xl p-6 border-gradient animate-fade-in-up hover-lift" style={{ animationDelay: '0.3s' }}>
+            <h2 className="text-2xl font-bold mb-4 animate-fade-in-left">Step 3: Choose your options</h2>
+            <p className="text-muted-foreground mb-6">Select options that best match your requirements (all are optional):</p>
+            
+            <div className="space-y-6">
+              {Object.entries(currentCategoryOptions).map(([optionType, options]) => (
+                <div key={optionType}>
+                  <h3 className="text-lg font-semibold mb-3 capitalize">{optionType.replace(/([A-Z])/g, ' $1').trim()}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {options.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => toggleOption(optionType, selectedOptions[optionType] === option ? '' : option)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                          selectedOptions[optionType] === option
+                            ? 'bg-primary text-white'
+                            : 'bg-secondary/50 hover:bg-primary/10 text-foreground'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-          {/* Custom Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Add custom details:</h3>
-            {customDetails.map((detail, index) => (
-              <div key={index} className="flex gap-3 items-start">
-                <input
-                  type="text"
-                  value={detail.name}
-                  onChange={(e) => updateCustomDetail(index, 'name', e.target.value)}
-                  placeholder="Detail name (e.g., Background)"
-                  className="w-40 bg-background border border-border/70 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-                <input
-                  type="text"
-                  value={detail.value}
-                  onChange={(e) => updateCustomDetail(index, 'value', e.target.value)}
-                  placeholder="Detail description (e.g., White studio background)"
-                  className="flex-1 bg-background border border-border/70 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-                <button
-                  onClick={() => removeCustomDetail(index)}
-                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={addCustomDetail}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary/50 hover:bg-secondary/70 rounded-xl transition-all"
-            >
-              <Plus className="h-4 w-4" />
-              Add Custom Detail
-            </button>
-          </div>
-
-          <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
-            <div className="flex items-start gap-2">
-              <Info className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-green-700 dark:text-green-300 mb-2">How additional details work:</h4>
-                <div className="text-sm text-green-600 dark:text-green-400 space-y-2">
-                  <p><strong>Additional Details:</strong> Add any specific requirements using two text boxes.</p>
-                  <p><strong>Example:</strong> Detail title: "Style" → Detail content: "Modern minimalist design"</p>
-                  <p><strong>Custom Details:</strong> Add your own detail type if needed.</p>
-                  <p><strong>Example:</strong> Detail name: "Lighting" → Description: "Soft natural lighting from the left"</p>
+            {Object.keys(selectedOptions).length > 0 && (
+              <div className="mt-6 p-4 bg-primary/5 rounded-xl border border-primary/20">
+                <div className="flex items-start gap-2">
+                  <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Selected Options:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(selectedOptions)
+                        .filter(([_, value]) => value)
+                        .map(([key, value]) => (
+                          <span key={key} className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full">
+                            {key}: {value}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
                 </div>
               </div>
+            )}
+
+            {/* Custom Tags Input */}
+            <div className="mt-6 pt-6 border-t border-border">
+              <h3 className="text-lg font-semibold mb-3">Add Custom Details</h3>
+              <p className="text-sm text-muted-foreground mb-3">Type a value and press Enter to add it as a chip:</p>
+              <div 
+                className="flex flex-wrap gap-2 p-3 bg-background border border-border/70 rounded-xl min-h-[60px] cursor-text"
+                onClick={() => customTagInputRef.current?.focus()}
+              >
+                {customTags.map((tag, index) => (
+                  <span 
+                    key={index}
+                    className="px-3 py-1.5 bg-primary/10 text-primary text-sm rounded-full flex items-center gap-2"
+                  >
+                    {tag}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeCustomTag(tag);
+                      }}
+                      className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  ref={customTagInputRef}
+                  type="text"
+                  value={customTagInput}
+                  onChange={(e) => setCustomTagInput(e.target.value)}
+                  onKeyDown={handleCustomTagKeyDown}
+                  onBlur={addCustomTag}
+                  placeholder={customTags.length === 0 ? "Type here (e.g., professional, high quality)..." : ""}
+                  className="flex-1 min-w-[150px] bg-transparent outline-none text-sm"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Tip: Press Enter or comma to add a tag
+              </p>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Generate Button */}
         <button
@@ -463,11 +524,11 @@ const Generator = () => {
         {generatedPrompt && (
           <div className="glass rounded-3xl p-6 border-gradient glow-soft animate-scale-in hover-lift">
             <div className="flex items-center gap-3 mb-4 animate-fade-in-left">
-              <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center animate-success-bounce">
-                <Check className="h-5 w-5 text-green-500" />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center animate-success-bounce">
+                <Check className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-green-600 dark:text-green-400">🎉 Your Perfect Prompt is Ready!</h3>
+                <h3 className="text-xl font-bold text-foreground">🎉 Your Perfect Prompt is Ready!</h3>
                 <p className="text-sm text-muted-foreground animate-fade-in-up" style={{ animationDelay: '0.2s' }}>Copy and paste into any AI tool</p>
               </div>
             </div>
@@ -502,8 +563,8 @@ const Generator = () => {
               </button>
             </div>
             
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 mt-4">
-              <p className="text-sm text-green-700 dark:text-green-300">
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mt-4">
+              <p className="text-sm text-foreground">
                 🚀 <strong>Ready to use!</strong> Paste this into ChatGPT, Claude, Gemini, Midjourney, or any AI tool.
               </p>
             </div>

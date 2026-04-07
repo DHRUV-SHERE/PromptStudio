@@ -78,7 +78,7 @@ const Profile = () => {
               <button className="px-4 py-3 rounded-lg glass hover:bg-red-500/10 text-red-500 transition-colors text-left">
                 Delete Account
               </button>
-              <button className="px-4 py-3 rounded-lg glass hover:bg-purple-500/10 text-purple-500 transition-colors text-left">
+              <button className="px-4 py-3 rounded-lg glass hover:bg-blue-500/10 text-blue-500 transition-colors text-left">
                 Notification Settings
               </button>
             </div>

@@ -41,11 +41,11 @@ const History = () => {
   
   // Categories with metadata
   const categories = [
-    { id: 'all', name: 'All Prompts', icon: '✨', color: 'bg-purple-500/10 text-purple-500' },
+    { id: 'all', name: 'All Prompts', icon: '✨', color: 'bg-blue-500/10 text-blue-500' },
     { id: 'creative', name: 'Creative', icon: '🎨', color: 'bg-blue-500/10 text-blue-500' },
     { id: 'marketing', name: 'Marketing', icon: '📈', color: 'bg-green-500/10 text-green-500' },
     { id: 'coding', name: 'Coding', icon: '💻', color: 'bg-orange-500/10 text-orange-500' },
-    { id: 'storytelling', name: 'Storytelling', icon: '📖', color: 'bg-pink-500/10 text-pink-500' },
+    { id: 'storytelling', name: 'Storytelling', icon: '📖', color: 'bg-blue-500/10 text-blue-500' },
     { id: 'business', name: 'Business', icon: '💼', color: 'bg-indigo-500/10 text-indigo-500' },
   ];
 
@@ -546,7 +546,7 @@ const History = () => {
                           {formatDate(item.createdAt)}
                         </div>
                         {item.isEnhanced && (
-                          <span className="px-2 py-1 rounded-full bg-purple-500/10 text-purple-500 text-xs">
+                          <span className="px-2 py-1 rounded-full bg-blue-500/10 text-blue-500 text-xs">
                             Enhanced
                           </span>
                         )}

@@ -10,16 +10,16 @@ const About = () => {
             <div className="inline-block">
               <div className="flex items-center gap-2 px-4 py-2 rounded-full glass border-primary/30">
                 <Lightbulb className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-gray-900 dark:text-white">Our Story</span>
+                <span className="text-sm font-medium text-foreground">Our Story</span>
               </div>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold">
               About{" "}
-              <span className="text-purple-600 dark:text-pink-500">
+              <span className="text-primary">
                 PromptStudio
               </span>
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               A solo project by Dhruv Shere - Empowering creators to harness AI through perfect prompts
             </p>
           </div>
@@ -33,12 +33,12 @@ const About = () => {
                 </div>
               </div>
               <div className="flex-grow">
-                <h2 className="text-3xl font-bold mb-3 text-gray-900 dark:text-white">Built by Dhruv Shere</h2>
-                <p className="text-lg font-medium text-purple-600 dark:text-pink-500 mb-2">Full-Stack MERN Developer</p>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <h2 className="text-3xl font-bold mb-3 text-foreground">Built by Dhruv Shere</h2>
+                <p className="text-lg font-medium text-primary mb-2">Full-Stack MERN Developer</p>
+                <p className="text-muted-foreground mb-4">
                   Gujarat, India • Building innovative web solutions
                 </p>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                <p className="text-muted-foreground leading-relaxed mb-6">
                   PromptStudio is a solo project developed by me, Dhruv Shere, as part of my journey to create 
                   practical, user-friendly applications. As a full-stack developer, I built this platform 
                   from concept to deployment using modern web technologies.
@@ -46,10 +46,10 @@ const About = () => {
                 
                 {/* Skills */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Built With</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-foreground">Built With</h3>
                   <div className="flex flex-wrap gap-2">
                     {["React", "Node.js", "Express JS", "MongoDB", "Tailwind CSS", "JavaScript"].map((skill, i) => (
-                      <span key={i} className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-300">
+                      <span key={i} className="px-3 py-1 bg-secondary rounded-full text-sm text-foreground">
                         {skill}
                       </span>
                     ))}
@@ -62,8 +62,8 @@ const About = () => {
                     onClick={() => window.open("https://portfolio-dhruvshere.vercel.app", "_blank", "noopener,noreferrer")}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/30 hover:border-primary/60 hover:bg-primary/10 transition-colors"
                   >
-                    <ExternalLink className="h-4 w-4 text-gray-900 dark:text-white" />
-                    <span className="text-gray-900 dark:text-white">Portfolio</span>
+                    <ExternalLink className="h-4 w-4 text-foreground" />
+                    <span className="text-foreground">Portfolio</span>
                   </button>
                   {/* Gradient Primary Button */}
                   <button
@@ -82,13 +82,13 @@ const About = () => {
           <div className="glass rounded-3xl p-8 md:p-12 border-gradient">
             <div className="grid md:grid-cols-2 gap-10 items-center">
               <div>
-                <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Project Mission</h2>
-                <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                <h2 className="text-3xl font-bold mb-6 text-foreground">Project Mission</h2>
+                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
                   PromptStudio was created to bridge the gap between human creativity and AI capabilities. 
                   I believe that everyone should be able to harness the power of AI tools without struggling 
                   to craft the perfect prompt.
                 </p>
-                <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                <p className="text-lg text-muted-foreground leading-relaxed">
                   As a solo developer, I built this platform to simplify the process, making AI accessible 
                   to creators, developers, marketers, and researchers alike.
                 </p>
@@ -96,21 +96,21 @@ const About = () => {
               <div className="relative">
                 <div className="absolute inset-0 gradient-primary opacity-20 blur-3xl rounded-full" />
                 <div className="relative grid grid-cols-2 gap-4">
-                  <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl text-center">
-                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">MERN</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Tech Stack</div>
+                  <div className="p-6 bg-secondary rounded-2xl text-center">
+                    <div className="text-3xl font-bold text-primary">MERN</div>
+                    <div className="text-sm text-muted-foreground mt-1">Tech Stack</div>
                   </div>
-                  <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl text-center">
-                    <div className="text-3xl font-bold text-pink-600 dark:text-pink-400">Solo</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Developer Project</div>
+                  <div className="p-6 bg-secondary rounded-2xl text-center">
+                    <div className="text-3xl font-bold text-primary">Solo</div>
+                    <div className="text-sm text-muted-foreground mt-1">Developer Project</div>
                   </div>
-                  <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl text-center">
-                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">Free</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Forever</div>
+                  <div className="p-6 bg-secondary rounded-2xl text-center">
+                    <div className="text-3xl font-bold text-primary">Free</div>
+                    <div className="text-sm text-muted-foreground mt-1">Forever</div>
                   </div>
-                  <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl text-center">
-                    <div className="text-3xl font-bold text-pink-600 dark:text-pink-400">6+</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Categories</div>
+                  <div className="p-6 bg-secondary rounded-2xl text-center">
+                    <div className="text-3xl font-bold text-primary">6+</div>
+                    <div className="text-sm text-muted-foreground mt-1">Categories</div>
                   </div>
                 </div>
               </div>
@@ -119,7 +119,7 @@ const About = () => {
 
           {/* Values */}
           <div>
-            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Development Values</h2>
+            <h2 className="text-3xl font-bold text-center mb-12 text-foreground">Development Values</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
@@ -160,8 +160,8 @@ const About = () => {
                   <div className="w-16 h-16 mx-auto rounded-2xl gradient-primary flex items-center justify-center mb-5 glow-soft">
                     <value.icon className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{value.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <h3 className="text-xl font-semibold mb-3 text-foreground">{value.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">
                     {value.description}
                   </p>
                 </div>
@@ -171,22 +171,22 @@ const About = () => {
 
           {/* Vision */}
           <div className="glass rounded-3xl p-8 md:p-12 border-gradient text-center">
-            <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Project Vision</h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed max-w-3xl mx-auto mb-8">
+            <h2 className="text-3xl font-bold mb-6 text-foreground">Project Vision</h2>
+            <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
               As a solo developer, I envision PromptStudio evolving into a comprehensive platform 
               that makes AI interaction intuitive for everyone. This project represents my commitment 
               to building practical solutions that bridge technology and everyday creativity.
             </p>
             <div className="flex items-center justify-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-600 dark:text-pink-500" />
-              <span className="text-lg font-medium text-purple-600 dark:text-pink-500">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <span className="text-lg font-medium text-primary">
                 Solo-built • Continuously Improving • Open to Feedback
               </span>
             </div>
             
             {/* Contact CTA - UPDATED WITH BUTTON ELEMENT */}
-            <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <div className="mt-8 pt-8 border-t border-border">
+              <p className="text-muted-foreground mb-4">
                 Have feedback or want to collaborate? I'd love to hear from you!
               </p>
               <button
