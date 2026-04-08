@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { 
-  Copy, Check, RefreshCw, Sparkles, Wand2, Info, AlertTriangle, X 
+  Copy, Check, RefreshCw, Sparkles, Wand2, Info, AlertTriangle, X,
+  Palette, Pen, Code2, BarChart3, Film, Smartphone, Music, Gamepad2, BookOpen, Zap, Rocket, Image
 } from "lucide-react";
 import { authAPI } from "../services/api";
 import { useAuth } from "../context/authContext";
@@ -8,56 +9,56 @@ import { useToast } from "../context/toastContext";
 
 // Category-specific options with chips
 const categoryOptions = {
-  '🎨 Image Generation': {
+  'Image Generation': {
     aspectRatio: ['Portrait (9:16)', 'Landscape (16:9)', 'Square (1:1)', 'Wide (21:9)', '4K (3840x2160)'],
     style: ['Photorealistic', 'Digital Art', 'Oil Painting', 'Watercolor', 'Anime/Manga', '3D Render', 'Abstract', 'Minimalist'],
     mood: ['Happy', 'Melancholic', 'Dramatic', 'Peaceful', 'Mysterious', 'Energetic', 'Romantic'],
     lighting: ['Golden Hour', 'Blue Hour', 'Studio', 'Natural', 'Neon', 'Dramatic Shadows', 'Soft Diffused'],
     quality: ['4K', '8K', 'HD', 'Ultra HD']
   },
-  '✍️ Content Writing': {
+  'Content Writing': {
     tone: ['Professional', 'Casual', 'Friendly', 'Formal', 'Humorous', 'Inspirational', 'Educational'],
     length: ['Short (100-200 words)', 'Medium (300-500 words)', 'Long (800-1000 words)', 'Extended (1500+ words)'],
     format: ['Blog Post', 'Article', 'Newsletter', 'Social Media Post', 'Story', 'Essay'],
     audience: ['General Public', 'Tech Savvy', 'Business Professionals', 'Teenagers', 'Parents', 'Experts']
   },
-  '💻 Code Generation': {
+  'Code Generation': {
     language: ['JavaScript', 'Python', 'Java', 'C++', 'Go', 'Rust', 'TypeScript', 'Swift', 'Kotlin'],
     framework: ['React', 'Vue.js', 'Angular', 'Node.js', 'Django', 'Flask', 'Express', 'Spring Boot'],
     complexity: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
     type: ['Function', 'Class', 'API Endpoint', 'Full Component', 'Algorithm', 'Database Query']
   },
-  '📊 Business & Marketing': {
+  'Business & Marketing': {
     platform: ['LinkedIn', 'Twitter/X', 'Instagram', 'Facebook', 'Website', 'Email', 'Presentation'],
     goal: ['Brand Awareness', 'Lead Generation', 'Sales', 'Engagement', 'Trust Building', 'Product Launch'],
     tone: ['Professional', 'Casual', 'Urgent', 'Inspirational', 'Educational', 'Persuasive'],
     audience: ['Startup Founders', 'Enterprise Executives', 'Small Business Owners', 'Marketing Professionals', 'General Consumers']
   },
-  '🎬 Video Creation': {
+  'Video Creation': {
     type: ['Tutorial', 'Promo/Ad', 'Vlog', 'Short Film', 'Explainer', 'Product Review', 'Unboxing'],
     duration: ['15 seconds', '30 seconds', '60 seconds', '2-3 minutes', '5-10 minutes', '10+ minutes'],
     style: ['Cinematic', 'Vlog Style', 'Corporate', 'Animation', 'Live Action', 'Motion Graphics'],
     platform: ['YouTube', 'TikTok', 'Instagram Reels', 'LinkedIn', 'Twitter/X']
   },
-  '📱 Social Media': {
+  'Social Media': {
     platform: ['Instagram', 'Twitter/X', 'LinkedIn', 'Facebook', 'TikTok', 'Pinterest', 'Threads'],
     contentType: ['Post', 'Caption', 'Thread', 'Story', 'Reel Script', 'Poll', 'Carousel'],
     goal: ['Engagement', 'Followers Growth', 'Brand Awareness', 'Traffic', 'Conversions'],
     tone: ['Professional', 'Fun', 'Inspirational', 'Educational', 'Controversial', 'Casual']
   },
-  '🎵 Music & Audio': {
+  'Music & Audio': {
     genre: ['Pop', 'Rock', 'Hip-Hop', 'Electronic', 'Classical', 'Jazz', 'R&B', 'Country', 'Lo-fi'],
     mood: ['Happy', 'Sad', 'Energetic', 'Calm', 'Epic', 'Romantic', 'Dark'],
     instrument: ['Piano', 'Guitar', 'Drums', 'Strings', 'Electronic', 'Full Band', 'Acapella'],
     useCase: ['Background Music', 'Songwriting', 'Soundtrack', 'Podcast Intro', 'Commercial']
   },
-  '🎮 Game Development': {
+  'Game Development': {
     genre: ['RPG', 'Action', 'Adventure', 'Puzzle', 'Strategy', 'Simulation', 'Horror', 'Sports'],
     style: ['2D Pixel Art', '3D Realistic', 'Cartoon', 'Low Poly', 'Pixel Art', 'Hand-drawn'],
     platform: ['PC', 'Mobile', 'Console', 'Web Browser', 'VR/AR'],
     engine: ['Unity', 'Unreal Engine', 'Godot', 'GameMaker', 'Construct']
   },
-  '📚 Education & Learning': {
+  'Education & Learning': {
     level: ['Beginner', 'Intermediate', 'Advanced', 'Expert', 'All Levels'],
     subject: ['Science', 'Mathematics', 'History', 'Language', 'Programming', 'Business', 'Arts'],
     format: ['Lesson Plan', 'Quiz', 'Explanation', 'Tutorial', 'Study Guide', 'Flashcards'],
@@ -80,40 +81,7 @@ const Generator = () => {
   const [currentProvider, setCurrentProvider] = useState(null);
   const customTagInputRef = useRef(null);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchDailyUsage();
-      fetchProviderInfo();
-    }
-  }, [isAuthenticated]);
-
-  const fetchProviderInfo = async () => {
-    try {
-      const response = await authAPI.getCategories();
-      if (response.success && response.data.modelInfo) {
-        setCurrentProvider(response.data.modelInfo);
-      }
-    } catch (error) {
-      console.error('Failed to fetch provider info:', error);
-    }
-  };
-
-  const mapCategoryToEnum = (category) => {
-    const categoryMap = {
-      '🎨 Image Generation': 'creative',
-      '✍️ Content Writing': 'creative', 
-      '💻 Code Generation': 'coding',
-      '📊 Business & Marketing': 'marketing',
-      '🎬 Video Creation': 'creative',
-      '📱 Social Media': 'marketing',
-      '🎵 Music & Audio': 'creative',
-      '🎮 Game Development': 'coding',
-      '📚 Education & Learning': 'storytelling'
-    };
-    return categoryMap[category] || 'creative';
-  };
-
-  const fetchDailyUsage = async () => {
+  const fetchDailyUsage = useCallback(async () => {
     try {
       const response = await authAPI.getDailyUsage();
       if (response.success) {
@@ -122,6 +90,39 @@ const Generator = () => {
     } catch (error) {
       console.error('Failed to fetch daily usage:', error);
     }
+  }, []);
+
+  const fetchProviderInfo = useCallback(async () => {
+    try {
+      const response = await authAPI.getCategories();
+      if (response.success && response.data.modelInfo) {
+        setCurrentProvider(response.data.modelInfo);
+      }
+    } catch (error) {
+      console.error('Failed to fetch provider info:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchDailyUsage();
+      fetchProviderInfo();
+    }
+  }, [isAuthenticated, fetchDailyUsage, fetchProviderInfo]);
+
+  const mapCategoryToEnum = (category) => {
+    const categoryMap = {
+      'Image Generation': 'creative',
+      'Content Writing': 'creative', 
+      'Code Generation': 'coding',
+      'Business & Marketing': 'marketing',
+      'Video Creation': 'creative',
+      'Social Media': 'marketing',
+      'Music & Audio': 'creative',
+      'Game Development': 'coding',
+      'Education & Learning': 'storytelling'
+    };
+    return categoryMap[category] || 'creative';
   };
 
   const toggleOption = (optionType, option) => {
@@ -351,22 +352,39 @@ const Generator = () => {
             <div>
               <p className="text-sm text-muted-foreground mb-3">Or choose from popular categories:</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {Object.keys(categoryOptions).map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => {
-                      setCategory(cat);
-                      setSelectedOptions({});
-                    }}
-                    className={`p-3 text-sm rounded-xl transition-all text-left ${
-                      category === cat 
-                        ? 'bg-primary text-white' 
-                        : 'bg-secondary/30 hover:bg-primary/10'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
+                {Object.keys(categoryOptions).map((cat) => {
+                  const getIcon = (c) => {
+                    switch(c) {
+                      case 'Image Generation': return <Image className="h-4 w-4" />;
+                      case 'Content Writing': return <Pen className="h-4 w-4" />;
+                      case 'Code Generation': return <Code2 className="h-4 w-4" />;
+                      case 'Business & Marketing': return <BarChart3 className="h-4 w-4" />;
+                      case 'Video Creation': return <Film className="h-4 w-4" />;
+                      case 'Social Media': return <Smartphone className="h-4 w-4" />;
+                      case 'Music & Audio': return <Music className="h-4 w-4" />;
+                      case 'Game Development': return <Gamepad2 className="h-4 w-4" />;
+                      case 'Education & Learning': return <BookOpen className="h-4 w-4" />;
+                      default: return <Sparkles className="h-4 w-4" />;
+                    }
+                  };
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        setCategory(cat);
+                        setSelectedOptions({});
+                      }}
+                      className={`p-3 text-sm rounded-xl transition-all text-left flex items-center gap-2 ${
+                        category === cat 
+                          ? 'bg-primary text-white' 
+                          : 'bg-secondary/30 hover:bg-primary/10'
+                      }`}
+                    >
+                      {getIcon(cat)}
+                      <span>{cat}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -496,81 +514,109 @@ const Generator = () => {
         <button
           onClick={generatePrompt}
           disabled={isLoading || !category.trim() || !description.trim() || (isAuthenticated && dailyUsage && !dailyUsage.canGenerate)}
-          className="w-full gradient-primary glow-primary hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed py-5 rounded-2xl font-bold text-xl transition-all shine animate-fade-in-up hover-lift" 
-          style={{ animationDelay: '0.4s' }}
+          className="w-full gradient-primary glow-primary hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed py-5 rounded-2xl font-bold text-xl transition-all shine animate-fade-in-up hover-lift"
         >
           {isLoading ? (
-            <div className="flex items-center justify-center gap-3">
-              <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Generating Perfect Prompt...</span>
-            </div>
-          ) : (isAuthenticated && dailyUsage && !dailyUsage.canGenerate) ? (
-            <div className="flex items-center justify-center gap-3">
-              <AlertTriangle className="h-6 w-6" />
-              <span>Daily Limit Reached - Try Tomorrow</span>
+            <div className="flex items-center justify-center gap-2">
+              <RefreshCw className="h-6 w-6 animate-spin" />
+              <span>Generating Magic...</span>
             </div>
           ) : (
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-2">
               <Sparkles className="h-6 w-6" />
-              <span>✨ Generate My Perfect Prompt</span>
-              {isAuthenticated && dailyUsage && (
-                <span className="text-sm opacity-75">({dailyUsage.remainingToday} left)</span>
-              )}
+              <span>Generate Optimized Prompt</span>
             </div>
           )}
         </button>
 
-        {/* Generated Prompt */}
+        {/* Output Section */}
         {generatedPrompt && (
-          <div className="glass rounded-3xl p-6 border-gradient glow-soft animate-scale-in hover-lift">
-            <div className="flex items-center gap-3 mb-4 animate-fade-in-left">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center animate-success-bounce">
-                <Check className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-foreground">🎉 Your Perfect Prompt is Ready!</h3>
-                <p className="text-sm text-muted-foreground animate-fade-in-up" style={{ animationDelay: '0.2s' }}>Copy and paste into any AI tool</p>
+          <div className="glass rounded-3xl p-6 border-2 border-primary/30 animate-scale-in relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                  Ready to use!
+                </span>
+                <Sparkles className="h-5 w-5 text-primary animate-pulse" />
               </div>
             </div>
             
-            <div className="bg-background border-2 border-primary/20 rounded-xl p-6 relative mb-4 max-h-80 overflow-y-auto">
-              <button
-                onClick={copyToClipboard}
-                className="absolute top-3 right-3 p-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-all z-10"
-              >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </button>
-              <div className="font-mono text-sm leading-relaxed whitespace-pre-wrap pr-12">
+            <h2 className="text-2xl font-bold mb-4 text-primary">Your Optimized Prompt:</h2>
+            <div className="relative">
+              <div className="bg-secondary/30 rounded-2xl p-6 text-lg leading-relaxed text-foreground min-h-24 border border-primary/10 group-hover:border-primary/30 transition-all">
                 {generatedPrompt}
               </div>
-            </div>
-            
-            <div className="flex gap-3">
               <button
                 onClick={copyToClipboard}
-                className="flex-1 bg-primary text-white hover:bg-primary/90 rounded-xl py-3 px-4 flex items-center justify-center gap-2 transition-all font-semibold"
+                className={`absolute top-3 right-3 p-3 rounded-xl transition-all ${
+                  copied ? 'bg-green-500 text-white' : 'glass hover:bg-primary/20 text-primary'
+                }`}
+                title="Copy to clipboard"
               >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? "✅ Copied!" : "📋 Copy Prompt"}
-              </button>
-              
-              <button
-                onClick={generatePrompt}
-                className="flex-1 bg-secondary/80 hover:bg-secondary border border-border rounded-xl py-3 px-4 flex items-center justify-center gap-2 transition-all font-semibold"
-              >
-                <RefreshCw className="h-4 w-4" />
-                🔄 Generate Again
+                {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
               </button>
             </div>
             
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mt-4">
-              <p className="text-sm text-foreground">
-                🚀 <strong>Ready to use!</strong> Paste this into ChatGPT, Claude, Gemini, Midjourney, or any AI tool.
-              </p>
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={copyToClipboard}
+                className="flex-1 flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary py-4 rounded-xl font-semibold transition-all"
+              >
+                <Copy className="h-5 w-5" />
+                Copy Prompt
+              </button>
+              <button
+                onClick={() => {
+                  setGeneratedPrompt("");
+                  setDescription("");
+                  setSelectedOptions({});
+                  setCustomTags([]);
+                }}
+                className="flex-1 flex items-center justify-center gap-2 bg-secondary/50 hover:bg-secondary/80 text-foreground py-4 rounded-xl font-semibold transition-all"
+              >
+                <RefreshCw className="h-5 w-5" />
+                Start Over
+              </button>
             </div>
+            
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              Pro tip: You can now paste this prompt directly into ChatGPT, Midjourney, or Claude for best results!
+            </p>
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        .gradient-hero {
+          background: radial-gradient(circle at 50% 50%, rgba(var(--primary-rgb), 0.05) 0%, transparent 50%),
+                      radial-gradient(circle at 0% 0%, rgba(var(--accent-rgb), 0.05) 0%, transparent 50%);
+        }
+        
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        .animate-fade-in-down { animation: fadeInDown 0.5s ease-out; }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
+        .animate-fade-in-left { animation: fadeInLeft 0.5s ease-out; }
+        .animate-scale-in { animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.3); } 50% { box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.5); } }
+        
+        .text-glow {
+          text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);
+        }
+        
+        .hover-lift:hover {
+          transform: translateY(-5px);
+          transition: transform 0.3s ease;
+        }
+      `}</style>
     </div>
   );
 };

@@ -1,9 +1,10 @@
-import { Sparkles, Zap, Rocket, Image, Globe, Video, Code, Database, TrendingUp, CheckCircle2, Users, Layers, ArrowRight, Star, Shield, Clock } from "lucide-react";
+import { Sparkles, Zap, Rocket, Image, Video, Code2, TrendingUp, Shield, Star, Clock, Pen, BarChart3, Smartphone, BookOpen, Layers } from "lucide-react";
 import { Link } from "react-router-dom";
 import CategoryCard from "../components/CatrgoryCard";
+import { useAuth } from "../context/authContext";
 
 const Index = () => {
-  const user = null;
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-background bg-particles">
@@ -37,10 +38,10 @@ const Index = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
-            <Link to={user ? "/generator" : "/auth"}>
+            <Link to={isAuthenticated ? "/generator" : "/signup"}>
               <button className="gradient-primary glow-primary hover:scale-105 transition-all duration-300 text-lg h-14 px-8 font-semibold shine rounded-lg flex items-center">
                 <Zap className="mr-2 h-5 w-5 text-primary-foreground" />
-                <span className="text-primary-foreground">{user ? "Start Generating" : "Get Started Free"}</span>
+                <span className="text-primary-foreground">{isAuthenticated ? "Start Generating" : "Get Started Free"}</span>
               </button>
             </Link>
             <a href="#categories">
@@ -74,7 +75,7 @@ const Index = () => {
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {[
             { value: "10K+", label: "Prompts Generated", delay: "0.1s" },
-            { value: "6", label: "Categories", delay: "0.2s" },
+            { value: "9+", label: "Categories", delay: "0.2s" },
             { value: "99%", label: "User Satisfaction", delay: "0.3s" },
             { value: "Free", label: "To Use", delay: "0.4s" },
           ].map((stat, i) => (
@@ -112,35 +113,44 @@ const Index = () => {
             delay="0.1s"
           />
           <CategoryCard
-            title="Website Creation"
-            description="Build modern websites with AI assistance. Optimized for development tools."
-            icon={Globe}
+            title="Content Writing"
+            description="Generate high-quality articles, blog posts, and creative stories instantly."
+            icon={Pen}
             delay="0.2s"
           />
           <CategoryCard
-            title="Video Creation"
-            description="Generate engaging video concepts and scripts for any platform."
-            icon={Video}
+            title="Code Generation"
+            description="Write better code faster with AI-optimized programming prompts."
+            icon={Code2}
             delay="0.3s"
           />
           <CategoryCard
-            title="Coding Assistant"
-            description="Write better code faster with AI-optimized programming prompts."
-            icon={Code}
+            title="Business & Marketing"
+            description="Create compelling marketing strategies and business content with AI."
+            icon={BarChart3}
             delay="0.4s"
           />
           <CategoryCard
-            title="Data & Research"
-            description="Extract insights and analyze data with precision AI prompts."
-            icon={Database}
+            title="Social Media"
+            description="Optimize your social presence with engaging post ideas and captions."
+            icon={Smartphone}
             delay="0.5s"
           />
           <CategoryCard
-            title="Marketing & Branding"
-            description="Create compelling content and brand strategies with AI."
-            icon={TrendingUp}
+            title="Education & Learning"
+            description="Create lesson plans, study guides, and educational materials effortlessly."
+            icon={BookOpen}
             delay="0.6s"
           />
+        </div>
+        
+        <div className="text-center mt-12">
+          <Link to="/generator">
+            <button className="text-primary hover:text-accent font-medium flex items-center gap-2 mx-auto group transition-all">
+              View All 9+ Categories
+              <Layers className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </Link>
         </div>
       </section>
 
@@ -163,14 +173,14 @@ const Index = () => {
               { 
                 step: "1", 
                 title: "Choose What You Want to Create", 
-                desc: "Pick from 6 categories: Images, Content Writing, Code, Business, Videos, or Social Media. Each category is designed for specific AI tools.", 
+                desc: "Pick from 9+ categories like Images, Content, Code, or Business. Each category is designed for specific AI tools.", 
                 icon: Layers,
                 example: "Example: Select 'Image Generation' for Midjourney prompts"
               },
               { 
                 step: "2", 
                 title: "Describe Your Idea", 
-                desc: "Simply write what you want in plain English. Be specific! Add details like style, colors, or target audience using our simple dropdown menus.", 
+                desc: "Simply write what you want in plain English. Add details like style, colors, or target audience using our simple dropdown menus.", 
                 icon: Sparkles,
                 example: "Example: 'A sunset over mountains in watercolor style'"
               },
@@ -223,7 +233,7 @@ const Index = () => {
               </div>
             </div>
             <div className="text-center mt-6">
-              <p className="text-sm text-muted-foreground mb-4">✨ Perfect for pasting into Midjourney, DALL-E, or any image AI!</p>
+              <p className="text-sm text-muted-foreground mb-4 flex items-center justify-center gap-1"><Sparkles className="h-4 w-4" /> Perfect for pasting into Midjourney, DALL-E, or any image AI!</p>
               <Link to="/generator">
                 <button className="gradient-primary text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-all">
                   Try It Yourself →
@@ -245,61 +255,73 @@ const Index = () => {
               </h2>
               <div className="space-y-5">
                 {[
-                  "No technical knowledge required - anyone can use it",
-                  "Works with ALL AI tools (ChatGPT, Claude, Midjourney, etc.)",
-                  "Get better results from AI with optimized prompts",
-                  "Save time - no more struggling with prompt writing",
-                  "Completely free to use forever",
+                  { text: "No technical knowledge required - anyone can use it", icon: Shield },
+                  { text: "Works with ALL AI tools (ChatGPT, Claude, Midjourney, etc.)", icon: Rocket },
+                  { text: "Get better results from AI with optimized prompts", icon: Sparkles },
+                  { text: "Save time by using our pre-built categories and options", icon: Clock },
+                  { text: "100% free to use for all your creative projects", icon: Star }
                 ].map((feature, i) => (
-                  <div 
-                    key={i} 
-                    className="flex items-center gap-4"
-                  >
-                    <div className="w-6 h-6 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="h-4 w-4 text-white" />
+                  <div key={i} className="flex items-center gap-4 group">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <feature.icon className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="text-lg text-foreground">{feature}</span>
+                    <span className="text-lg text-foreground font-medium">{feature.text}</span>
                   </div>
                 ))}
               </div>
+              <div className="mt-10">
+                <Link to="/signup">
+                  <button className="gradient-primary text-white px-8 py-4 rounded-xl font-bold text-lg hover:scale-105 transition-all shadow-lg glow-primary">
+                    Create Your Free Account
+                  </button>
+                </Link>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { icon: Users, title: "Beginner Friendly", desc: "No AI experience needed", color: "primary" },
-                { icon: Layers, title: "6 Categories", desc: "Images, Code, Content & more", color: "accent" },
-                { icon: Zap, title: "Instant Results", desc: "Generate in 3 seconds", color: "primary" },
-                { icon: Sparkles, title: "Better Outputs", desc: "Optimized for quality", color: "accent" },
-              ].map((item, i) => (
-                <div 
-                  key={i} 
-                  className="p-6 bg-secondary/30 rounded-2xl text-center hover-lift"
-                >
-                  <item.icon className={`h-10 w-10 mx-auto mb-3 ${item.color === 'primary' ? 'text-primary' : 'text-accent'}`} />
-                  <div className="font-semibold text-foreground">{item.title}</div>
-                  <div className="text-sm text-muted-foreground">{item.desc}</div>
+            <div className="relative">
+              <div className="w-full h-[400px] rounded-2xl overflow-hidden glass border-gradient rotate-2 hover:rotate-0 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                  <Zap className="w-32 h-32 text-primary animate-pulse-glow" />
                 </div>
-              ))}
+              </div>
+              {/* Floating badges */}
+              <div className="absolute -top-6 -right-6 glass p-4 rounded-2xl border-gradient animate-float shadow-xl">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                  <span className="text-sm font-bold">10,000+ Users</span>
+                </div>
+              </div>
+              <div className="absolute -bottom-6 -left-6 glass p-4 rounded-2xl border-gradient animate-float shadow-xl" style={{ animationDelay: "1.5s" }}>
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                  <span className="text-sm font-bold">Top Rated AI Tool</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="text-foreground">Ready to Create </span>
-            <span className="text-primary dark:text-accent">Perfect Prompts?</span>
+      <section className="container mx-auto px-4 py-20 text-center">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <h2 className="text-4xl md:text-6xl font-bold text-foreground">
+            Ready to Unlock the Full Power of <span className="text-primary">AI?</span>
           </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-muted-foreground">
-            Join thousands of creators using PromptStudio to generate optimized AI prompts. It's free and takes just seconds.
+          <p className="text-xl text-muted-foreground">
+            Join thousands of creators using PromptStudio to generate perfect prompts.
           </p>
-          <Link to={user ? "/generator" : "/generator"}>
-            <button className="gradient-primary glow-primary hover:scale-105 transition-all duration-300 text-lg h-14 px-10 font-semibold shine rounded-lg flex items-center mx-auto">
-              <Sparkles className="mr-2 h-5 w-5 text-white" />
-              <span className="text-white">{user ? "Go to Generator" : "Start For Free"}</span>
-            </button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/signup">
+              <button className="w-full sm:w-auto gradient-primary text-white px-10 py-5 rounded-2xl font-bold text-xl hover:scale-105 transition-all shadow-xl glow-primary">
+                Get Started for Free
+              </button>
+            </Link>
+            <Link to="/about">
+              <button className="w-full sm:w-auto glass text-foreground px-10 py-5 rounded-2xl font-bold text-xl hover:bg-secondary/50 transition-all border border-border">
+                Learn More
+              </button>
+            </Link>
+          </div>
         </div>
       </section>
     </div>

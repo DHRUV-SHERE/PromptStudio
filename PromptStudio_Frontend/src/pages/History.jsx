@@ -6,7 +6,6 @@ import {
   Copy, 
   Download, 
   Trash2, 
-  Filter, 
   Search, 
   ChevronLeft, 
   ChevronRight,
@@ -14,9 +13,13 @@ import {
   Loader2,
   Sparkles,
   Tag,
-  Eye,
   RefreshCw,
-  Calendar
+  Calendar,
+  Palette,
+  TrendingUp,
+  Code2,
+  BookOpen,
+  Briefcase
 } from "lucide-react";
 import { authAPI } from '../services/api';
 
@@ -39,14 +42,14 @@ const History = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
   
-  // Categories with metadata
+// Categories with metadata
   const categories = [
-    { id: 'all', name: 'All Prompts', icon: '✨', color: 'bg-blue-500/10 text-blue-500' },
-    { id: 'creative', name: 'Creative', icon: '🎨', color: 'bg-blue-500/10 text-blue-500' },
-    { id: 'marketing', name: 'Marketing', icon: '📈', color: 'bg-green-500/10 text-green-500' },
-    { id: 'coding', name: 'Coding', icon: '💻', color: 'bg-orange-500/10 text-orange-500' },
-    { id: 'storytelling', name: 'Storytelling', icon: '📖', color: 'bg-blue-500/10 text-blue-500' },
-    { id: 'business', name: 'Business', icon: '💼', color: 'bg-indigo-500/10 text-indigo-500' },
+    { id: 'all', name: 'All Prompts', icon: Sparkles, color: 'bg-blue-500/10 text-blue-500' },
+    { id: 'creative', name: 'Creative', icon: Palette, color: 'bg-blue-500/10 text-blue-500' },
+    { id: 'marketing', name: 'Marketing', icon: TrendingUp, color: 'bg-green-500/10 text-green-500' },
+    { id: 'coding', name: 'Coding', icon: Code2, color: 'bg-orange-500/10 text-orange-500' },
+    { id: 'storytelling', name: 'Storytelling', icon: BookOpen, color: 'bg-blue-500/10 text-blue-500' },
+    { id: 'business', name: 'Business', icon: Briefcase, color: 'bg-indigo-500/10 text-indigo-500' },
   ];
 
   // Fetch prompt history
@@ -79,7 +82,7 @@ const History = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, activeCategory, searchQuery, itemsPerPage]);
+  }, [currentPage, activeCategory, searchQuery, itemsPerPage, showToast]);
 
   useEffect(() => {
     if (user) {
@@ -161,7 +164,7 @@ const History = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedItems.length === historyItems.length) {
+    if (selectedItems.length === historyItems.length && historyItems.length > 0) {
       setSelectedItems([]);
     } else {
       setSelectedItems(historyItems.map(item => item._id));
@@ -317,25 +320,28 @@ const History = () => {
           {/* Category Filters */}
           <div className="mb-6 overflow-x-auto">
             <div className="flex gap-2 pb-2 min-w-max">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => {
-                    setActiveCategory(category.id);
-                    setCurrentPage(1);
-                  }}
-                  className={`px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap ${
-                    activeCategory === category.id
-                      ? 'gradient-primary text-white'
-                      : 'glass hover:bg-primary/10'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{category.icon}</span>
-                    <span>{category.name}</span>
-                  </div>
-                </button>
-              ))}
+              {categories.map(category => {
+                const Icon = category.icon;
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => {
+                      setActiveCategory(category.id);
+                      setCurrentPage(1);
+                    }}
+                    className={`px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap ${
+                      activeCategory === category.id
+                        ? 'gradient-primary text-white'
+                        : 'glass hover:bg-primary/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon className="h-3 w-3 flex-shrink-0" />
+                      <span>{category.name}</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -408,7 +414,7 @@ const History = () => {
                       <th className="py-3 px-4 text-left">
                         <input
                           type="checkbox"
-                          checked={selectedItems.length === historyItems.length}
+                          checked={selectedItems.length === historyItems.length && historyItems.length > 0}
                           onChange={handleSelectAll}
                           className="rounded border-border"
                         />
@@ -422,6 +428,7 @@ const History = () => {
                   <tbody>
                     {historyItems.map((item) => {
                       const categoryInfo = getCategoryInfo(item.category);
+                      const CategoryIcon = categoryInfo.icon;
                       return (
                         <tr
                           key={item._id}
@@ -447,7 +454,7 @@ const History = () => {
                           </td>
                           <td className="py-4 px-4">
                             <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${categoryInfo.color}`}>
-                              {categoryInfo.icon} {categoryInfo.name}
+                              <CategoryIcon className="h-3 w-3 flex-shrink-0" /> {categoryInfo.name}
                             </span>
                           </td>
                           <td className="py-4 px-4 text-sm text-muted-foreground">
@@ -492,6 +499,7 @@ const History = () => {
               <div className="md:hidden space-y-4">
                 {historyItems.map((item) => {
                   const categoryInfo = getCategoryInfo(item.category);
+                  const CategoryIcon = categoryInfo.icon;
                   return (
                     <div
                       key={item._id}
@@ -506,7 +514,7 @@ const History = () => {
                             className="rounded border-border mt-1"
                           />
                           <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${categoryInfo.color}`}>
-                            {categoryInfo.icon} {categoryInfo.name}
+                            <CategoryIcon className="h-3 w-3 flex-shrink-0" /> {categoryInfo.name}
                           </span>
                         </div>
                         <div className="flex gap-1">
