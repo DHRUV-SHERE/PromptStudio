@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Mail, Lock, ArrowLeft, Zap, Shield, Rocket, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, Zap, Shield, Rocket, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/authContext';
 import { useToast } from '../context/toastContext';
 import Resource from '../Resource';

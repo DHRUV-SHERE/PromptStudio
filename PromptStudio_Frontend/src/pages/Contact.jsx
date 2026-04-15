@@ -1,4 +1,4 @@
-import { Mail, MessageSquare, Send, MapPin, Clock } from "lucide-react";
+import { Mail, MessageSquare, Send, MapPin, Clock, Info } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import api from "../services/api"; // or use authAPI if you prefer
@@ -241,7 +241,7 @@ const Contact = () => {
                   key={i}
                   className="px-4 py-2 rounded-full bg-secondary text-sm hover:bg-primary hover:text-white transition-all duration-300"
                   onClick={() => toast(q, { 
-                    icon: 'ℹ️',
+                    icon: <Info className="h-4 w-4" />,
                     duration: 3000 
                   })}
                 >
